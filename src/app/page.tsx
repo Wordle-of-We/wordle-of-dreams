@@ -1,37 +1,55 @@
 'use client';
 
-import { Flame, ScrollText, Image, Smile } from 'lucide-react';
+import { Play, Smile, FileText, Image as ImageIcon} from 'lucide-react';
 import ModoItem from './components/ModoItem';
+import StickerBackground from './components/StickerBackground';
 
 export default function HomePage() {
   return (
-      <div className="flex flex-col items-center justify-center min-h-screen gap-6">
-        <h1 className="text-3xl font-bold text-gray-700 mb-4">Escolha o modo de jogo</h1>
+    <div className="relative min-h-screen overflow-hidden bg-gray-50 px-4 py-10">
+      <StickerBackground />
+      {/* Título */}
+      <div className="relative z-10 text-center mt-10">
+        <h1 className="text-4xl sm:text-5xl font-extrabold font-poppins text-gray-800">
+          {`Wordle Of Dreams`.split(' ').map((word, idx) => (
+            <span key={idx} className="block">{word}</span>
+          ))}
+          <span className="block text-orange-500 font-extrabold font-pacifico text-xl sm:text-2xl mt-2">
+           Guessing Game
+          </span>
+        </h1>
+        <p className="mt-4 text-gray-500 text-base sm:text-lg max-w-xl mx-auto font-raleway">
+          Escolha seu modo de jogo favorito e teste seus conhecimentos sobre os personagens mais queridos da DreamWorks!
+        </p>
+      </div>
 
+      {/* Modos de jogo */}
+      <div className="relative z-10 flex flex-col items-center w-full max-w-md mt-6 mx-auto gap-4">
         <ModoItem
           title="Clássico"
-          description="Consiga pistas a cada tentativa"
-          icon={<Flame className="text-black" />}
+          description="O jogo tradicional de adivinhação de personagens DreamWorks com dicas visuais"
+          icon={<Play className="text-green-500 w-8 h-8" />}
           href="/game?modo=classico"
         />
         <ModoItem
+          title="Emojis"
+          description="Descubra o personagem através de pistas divertidas com emojis"
+          icon={<Smile className="text-orange-500 w-8 h-8" />}
+          href="/game?modo=emoji"
+        />
+        <ModoItem
           title="Descrição"
-          description="Adivinhe o personagem pela descrição"
-          icon={<ScrollText className="text-black" />}
+          description="Use descrições detalhadas para encontrar o personagem misterioso"
+          icon={<FileText className="text-orange-600 w-8 h-8" />}
           href="/game?modo=descricao"
         />
         <ModoItem
           title="Imagem"
-          description="Adivinhe o personagem pela foto desfocada"
-          icon={<Image className="text-black" />}
+          description="Adivinhe o personagem com base em uma imagem desfocada"
+          icon={<ImageIcon className="text-blue-500 w-8 h-8" />}
           href="/game?modo=imagem"
         />
-        <ModoItem
-          title="Emoji"
-          description="Adivinhe o personagem pela sequência de emojis"
-          icon={<Smile className="text-black" />}
-          href="/game?modo=emoji"
-        />
       </div>
+    </div>
   );
 }
