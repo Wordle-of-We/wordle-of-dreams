@@ -11,7 +11,7 @@ export default function HomePage() {
       {/* Título */}
       <div className="relative z-10 text-center mt-10">
         <h1 className="text-4xl sm:text-5xl font-extrabold font-poppins text-gray-800">
-          {`Wordle Of Dreams`.split(' ').map((word, idx) => (
+          {`Wordle Dreams`.split(' ').map((word, idx) => (
             <span key={idx} className="block">{word}</span>
           ))}
           <span className="block text-orange-500 font-extrabold font-pacifico text-xl sm:text-2xl mt-2">
