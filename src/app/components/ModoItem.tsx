@@ -15,7 +15,7 @@ export default function ModoItem({ title, description, icon, href }: ModoCardPro
   return (
     <div className="flex flex-row justify-center items-center">
       <div
-        className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm hover:shadow-md transition flex flex-row items-center gap-6 w-full max-w-md min-w-[320px] cursor-pointer hover:-translate-y-1 hover:scale-[1.03] duration-200"
+        className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm hover:shadow-md transition flex flex-row items-center gap-6 w-full max-w-lg min-w-[360px] cursor-pointer hover:-translate-y-1 hover:scale-[1.03] duration-200"
       >
         <div className="bg-gray-100 rounded-xl p-4 flex items-center justify-center w-16 h-16">
           {icon}
@@ -26,7 +26,7 @@ export default function ModoItem({ title, description, icon, href }: ModoCardPro
         </div>
         <button
           onClick={() => router.push(href)}
-          className="bg-orange-500 text-white px-6 py-2 rounded-md font-semibold flex items-center gap-2 hover:brightness-110"
+          className="bg-orange-500 text-white px-6 py-2 rounded-md font-semibold flex items-center gap-2 hover:brightness-150"
         >
           Jogar <ArrowRight size={16} />
         </button>
