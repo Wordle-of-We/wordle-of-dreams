@@ -25,41 +25,43 @@ export function useClassicMode() {
   const [error, setError] = useState<string | null>(null);
 
   // Inicia a partida
-  useEffect(() => {
-    const startGame = async () => {
-      try {
-        const res = await api.post('/plays/start', {
-          modeConfigId: 1,
-        });
-        console.log('[useClassicGame] playId recebido:', res.data.id);
-        setPlayId(res.data.id);
-      } catch (err) {
-        console.error('[useClassicGame] Erro ao iniciar partida:', err);
-        setError('Erro ao iniciar o jogo.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    startGame();
-  }, []);
+ useEffect(() => {
+  const start = async () => {
+    try {
+      const res = await api.post("/plays/start", { modeConfigId: 1 });
+      console.log("[useClassicGame] Partida iniciada:", res.data);
+      console.log("[useClassicGame] playId recebido:", res.data.playId);
+      setPlayId(res.data.playId);
+    } catch (err) {
+      console.error("Erro ao iniciar partida:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+  start();
+}, []);
 
   // Envia palpite
- const submitGuess = async (name: string) => {
-  const idToUse = playId ?? 1;
+  const submitGuess = async (name: string) => {
+    if (!playId) {
+      console.warn('[useClassicGame] ⚠️ playId ainda não disponível. Palpite ignorado.');
+      return;
+    }
+    const idToUse = playId;
 
-  const payload = { guess: name };
-  console.log(`[useClassicGame] Enviando palpite para /plays/${idToUse}/guess`, payload);
 
-  try {
-    const res = await api.post(`/plays/${idToUse}/guess`, payload);
-    console.log('[useClassicGame] Resposta recebida:', res.data);
+    const payload = { guess: name };
+    console.log(`[useClassicGame] Enviando palpite para /plays/${idToUse}/guess`, payload);
 
-    setGuesses((prev) => [...prev, res.data]);
-  } catch (err: any) {
-    console.error('[useClassicGame] ❌ Erro ao enviar palpite:', err.response?.data || err.message);
-  }
-};
+    try {
+      const res = await api.post(`/plays/${idToUse}/guess`, payload);
+      console.log('[useClassicGame] Resposta recebida:', res.data);
+
+      setGuesses((prev) => [...prev, res.data]);
+    } catch (err: any) {
+      console.error('[useClassicGame] ❌ Erro ao enviar palpite:', err.response?.data || err.message);
+    }
+  };
 
 
   return {

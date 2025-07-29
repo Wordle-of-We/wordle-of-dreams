@@ -6,7 +6,7 @@ import { CheckCircle, XCircle } from 'lucide-react';
 import Image from 'next/image';
 
 export default function ClassicMode() {
-  const { guesses, submitGuess, loading } = useClassicMode();
+  const { guesses, submitGuess, loading, playId } = useClassicMode();
 
   const getStatusColor = (guessed: any, target: any) => {
     if (JSON.stringify(guessed) === JSON.stringify(target)) return 'bg-green-500';
@@ -21,13 +21,18 @@ export default function ClassicMode() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-10">
-    <h1 className="text-3xl font-bold text-center mb-8">Modo Clássico</h1>
+      <h1 className="text-3xl font-bold text-center mb-8">Modo Clássico</h1>
 
-    <div className="flex justify-center">
-      <GuessInput onSelect={(name) => { submitGuess(name); }} />
-    </div>
+      {playId ? (
+        <div className="flex justify-center">
+          <GuessInput onSelect={(name) => { submitGuess(name); }} />
+        </div>
+      ) : (
+        <p className="text-center mt-6 text-gray-500">Carregando partida...</p>
+      )}
 
-    {loading && <p className="text-center mt-4 text-gray-500">Carregando...</p>}
+
+      {loading && <p className="text-center mt-4 text-gray-500">Carregando...</p>}
 
       {/* Legenda */}
       <div className="mt-10 flex justify-center gap-6 text-sm">
@@ -45,45 +50,51 @@ export default function ClassicMode() {
         </div>
       </div>
       <div className="mt-10 space-y-6">
-        {guesses.map((g, i) => (
-          <div key={i} className=" rounded p-6 bg-white shadow-sm">
-            <p className="text-xl font-semibold mb-4">
-              Tentativa {i + 1}: {g.guess} {g.isCorrect && '✅'}
-            </p>
+        {guesses.length === 0 ? (
+          <div className="text-center text-gray-500 py-10">
+            <p className="text-lg font-semibold">Nenhuma tentativa ainda</p>
+            <p>Faça seu primeiro palpite para começar</p>
+          </div>
+        ) : (
+          guesses.map((g, i) => (
+            <div key={i} className=" rounded p-6 bg-white shadow-sm">
+              <p className="text-xl font-semibold mb-4">
+                Tentativa {i + 1}: {g.guess} {g.isCorrect && '✅'}
+              </p>
 
-            <div className="flex flex-col sm:flex-row gap-6">
-              <Image
-                src={g.imageUrl}
-                alt={g.guess}
-                className="w-40 h-40 object-contain rounded border"
-                width={160}
-                height={160}
-              />
+              <div className="flex flex-col sm:flex-row gap-6">
+                <Image
+                  src={g.imageUrl}
+                  alt={g.guess}
+                  className="w-40 h-40 object-contain rounded border"
+                  width={160}
+                  height={160}
+                />
 
-              <div className="flex flex-wrap gap-4">
-                {Object.entries(g.comparison).map(([key, val]) => {
-                  const color = getStatusColor(val.guessed, val.target);
-                  return (
-                    <div
-                      key={key}
-                      className={`w-36 h-36 text-white p-4 rounded flex flex-col justify-between ${color}`}
-                    >
-                      <div className="text-sm font-semibold">{key}</div>
-                      <div className="text-lg font-bold">{val.guessed}</div>
-                      <div className="flex justify-end">
-                        {color === 'bg-green-500' && <CheckCircle />}
-                        {color === 'bg-red-500' && <XCircle />}
-                        {color === 'bg-yellow-400' && <div className="w-4 h-4 bg-yellow-400 rounded-full" />}
+                <div className="flex flex-wrap gap-4">
+                  {Object.entries(g.comparison).map(([key, val]) => {
+                    const color = getStatusColor(val.guessed, val.target);
+                    return (
+                      <div
+                        key={key}
+                        className={`w-36 h-36 text-white p-4 rounded flex flex-col justify-between ${color}`}
+                      >
+                        <div className="text-sm font-semibold">{key}</div>
+                        <div className="text-lg font-bold">{val.guessed}</div>
+                        <div className="flex justify-end">
+                          {color === 'bg-green-500' && <CheckCircle />}
+                          {color === 'bg-red-500' && <XCircle />}
+                          {color === 'bg-yellow-400' && <div className="w-4 h-4 bg-yellow-400 rounded-full" />}
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
-
     </div>
   );
 }
