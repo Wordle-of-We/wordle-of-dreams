@@ -29,7 +29,7 @@ export default function HomePage() {
           title="Clássico"
           description="O jogo tradicional de adivinhação de personagens DreamWorks com dicas visuais"
           icon={<Play className="text-green-500 w-8 h-8" />}
-          href="/game?modo=classico"
+          href="/classicMode"
         />
         <ModoItem
           title="Emojis"
@@ -40,12 +40,12 @@ export default function HomePage() {
         <ModoItem
           title="Descrição"
           description="Use descrições detalhadas para encontrar o personagem misterioso"
-          icon={<FileText className="text-orange-600 w-8 h-8" />}
+          icon={<FileText className="text-yellow-500 w-8 h-8" />}
           href="/game?modo=descricao"
         />
         <ModoItem
           title="Imagem"
-          description="Adivinhe o personagem com base em uma imagem desfocada"
+          description="Adivinhe o personagem com base em sua imagem desfocada"
           icon={<ImageIcon className="text-blue-500 w-8 h-8" />}
           href="/game?modo=imagem"
         />
