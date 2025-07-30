@@ -2,6 +2,16 @@
 
 import { useEffect, useState } from 'react';
 import api from '@/lib/api';
+// Add this import or type definition for Character
+// import { Character } from '@/types/character'; // Uncomment if you have this type elsewhere
+
+// If you don't have a Character type, define a basic one here:
+type Character = {
+  id: number;
+  name: string;
+  imageUrl?: string;
+  // Add other properties as needed
+};
 
 interface Comparison<T> {
   guessed: T;
@@ -9,9 +19,10 @@ interface Comparison<T> {
 }
 
 interface GuessResult {
+  character: any;
   guess: string;
   isCorrect: boolean;
-  imageUrl: string;
+  guessedImageUrl1: string;
   comparison: {
     [key: string]: Comparison<any>;
   };
@@ -21,10 +32,10 @@ interface GuessResult {
 export function useClassicMode() {
   const [playId, setPlayId] = useState<number | null>(null);
   const [guesses, setGuesses] = useState<GuessResult[]>([]);
+  const [characters, setCharacters] = useState<Character[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Inicia a partida
  useEffect(() => {
   const start = async () => {
     try {
@@ -70,5 +81,6 @@ export function useClassicMode() {
     loading,
     error,
     submitGuess,
+    characters,
   };
 }
