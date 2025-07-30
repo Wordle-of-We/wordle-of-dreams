@@ -6,7 +6,7 @@ import StickerBackground from './components/StickerBackground';
 
 export default function HomePage() {
   return (
-    <div className="relative min-h-screen overflow-hidden bg-gray-50 px-4 py-10">
+    <div className="relative min-h-screen overflow-hidden px-4 py-10">
       <StickerBackground />
       {/* Título */}
       <div className="relative z-10 text-center mt-10">
