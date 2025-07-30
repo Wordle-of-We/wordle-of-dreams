@@ -60,6 +60,9 @@ export default function ClassicMode() {
     return 'bg-red-400';
   };
 
+  // Inverte a ordem dos palpites para mostrar o último no topo
+  const reversedGuesses = [...guesses].reverse();
+
   return (
     <div className="classic-mode-container">
       <StickerBackground />
@@ -92,64 +95,64 @@ export default function ClassicMode() {
       <div className="relative z-10 mt-10 space-y-6">
         {guesses.length === 0 ? (
           <div className="text-center text-gray-500 py-10">
-        <p className="text-lg font-semibold">Nenhuma tentativa ainda</p>
-        <p>Faça seu primeiro palpite para começar</p>
+            <p className="text-lg font-semibold">Nenhuma tentativa ainda</p>
+            <p>Faça seu primeiro palpite para começar</p>
           </div>
         ) : (
-          guesses.map((g, i) => {
-        const guessedCharacter = characters.find(
-          (char) => char.name.toLowerCase() === g.guess.toLowerCase()
-        );
+          reversedGuesses.map((g, i) => {
+            const guessedCharacter = characters.find(
+              (char) => char.name.toLowerCase() === g.guess.toLowerCase()
+            );
 
-        return (
-          <div key={i} className="rounded p-6 shadow-sm w-max mx-full bg-gray-50">
-            <div className="flex flex-col sm:flex-row gap-4 items-start">
-          <div className="flex justify-center items-center mt-5 w-25 h-25">
-            <Image
-              src={
-            guessedCharacter?.imageUrl ||
-            g.guessedImageUrl1 ||
-            "/images/default-character.png"
-              }
-              alt={g.guess}
-              width={160}
-              height={160}
-              className="object-contain rounded-xl border"
-            />
-          </div>
+            return (
+              <div key={i} className="rounded p-6 shadow-sm w-max mx-full bg-gray-50">
+                <div className="flex flex-col sm:flex-row gap-4 items-start">
+                  <div className="flex justify-center items-center mt-5 w-25 h-25">
+                    <Image
+                      src={
+                        guessedCharacter?.imageUrl ||
+                        g.guessedImageUrl1 ||
+                        "/images/default-character.png"
+                      }
+                      alt={g.guess}
+                      width={160}
+                      height={160}
+                      className="object-contain rounded-xl border"
+                    />
+                  </div>
 
-          <div className="mt-6 flex flex-wrap justify-center gap-4">
-            {Object.entries(g.comparison).map(([key, val]) => {
-              const color = getStatusColor(val.guessed, val.target);
-              const Icon = getIconForKey(key);
-              const label = translateKey(key);
+                  <div className="mt-6 flex flex-wrap justify-center gap-4">
+                    {Object.entries(g.comparison).map(([key, val]) => {
+                      const color = getStatusColor(val.guessed, val.target);
+                      const Icon = getIconForKey(key);
+                      const label = translateKey(key);
 
-              return (
-            <div
-              key={`${key}-${i}`}
-              className={`w-25 h-25 p-4 rounded-xl shadow-md flex flex-col items-center justify-between text-white ${color}`}
-            >
-              <div className="text-xs">{Icon}</div>
-              <div className="text-xs font-semibold mt-1">{label}</div>
-              <div className="text-xs font-bold text-center break-words">
-                {typeof val.guessed === "object"
-              ? Array.isArray(val.guessed)
-                ? val.guessed.join(", ")
-                : JSON.stringify(val.guessed)
-              : val.guessed}
+                      return (
+                        <div
+                          key={`${key}-${i}`}
+                          className={`w-25 h-25 p-4 rounded-xl shadow-md flex flex-col items-center justify-between text-white ${color}`}
+                        >
+                          <div className="text-xs">{Icon}</div>
+                          <div className="text-xs font-semibold mt-1">{label}</div>
+                          <div className="text-xs font-bold text-center break-words">
+                            {typeof val.guessed === "object"
+                              ? Array.isArray(val.guessed)
+                                ? val.guessed.join(", ")
+                                : JSON.stringify(val.guessed)
+                              : val.guessed}
+                          </div>
+                          <div className="mt-1">
+                            {color === 'bg-green-400' && <CheckCircle size={20} />}
+                            {color === 'bg-red-400' && <XCircle size={20} />}
+                            {color === 'bg-yellow-400' && <div className="w-4 h-4 bg-yellow-400 rounded-full" />}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
-              <div className="mt-1">
-                {color === 'bg-green-400' && <CheckCircle size={20} />}
-                {color === 'bg-red-400' && <XCircle size={20} />}
-                {color === 'bg-yellow-400' && <div className="w-4 h-4 bg-yellow-400 rounded-full" />}
-              </div>
-            </div>
-              );
-            })}
-          </div>
-            </div>
-          </div>
-        );
+            );
           })
         )}
       </div>
