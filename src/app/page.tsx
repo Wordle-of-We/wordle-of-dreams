@@ -13,14 +13,11 @@ export default function HomePage() {
         {/* Título */}
         <div className="relative z-10 text-center mt-10">
           <h1 className="text-4xl sm:text-5xl font-extrabold font-poppins text-gray-800">
-            {/* {`Wordle of Dreams`.split(' ').map((word, idx) => (
-              <span key={idx} className="block">{word}</span>
-            ))} */}
-            <div className="flex items-center justify-center ">
+            <div className="flex items-center justify-center -mt-10">
               <img
-                src="/logo_dreams.svg"
-                alt="Logo Wordle of Dreams"
-                className="w-52 h-52"
+              src="/logo_dreams.svg"
+              alt="Logo Wordle of Dreams"
+              className="w-52 h-52"
               />
             </div>
             <span className="block text-orange-500 font-extrabold font-pacifico text-xl sm:text-2xl mt-2">
