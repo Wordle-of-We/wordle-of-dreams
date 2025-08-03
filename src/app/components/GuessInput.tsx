@@ -21,7 +21,6 @@ export default function GuessInput({ onSelect }: { onSelect: (name: string) => v
     const fetchCharacters = async () => {
       try {
         const res = await getAllCharacters();
-        console.log('[GuessInput] Personagens carregados:', res);
         setCharacters(res);
       } catch (err) {
         console.error('[GuessInput] Erro ao buscar personagens:', err);
@@ -31,7 +30,6 @@ export default function GuessInput({ onSelect }: { onSelect: (name: string) => v
     fetchCharacters();
   }, []);
 
-  // Filtragem local
   useEffect(() => {
     const query = input.trim().toLowerCase();
     if (query.length === 0) {
@@ -42,7 +40,6 @@ export default function GuessInput({ onSelect }: { onSelect: (name: string) => v
     const results = characters.filter((char) =>
       char.name.toLowerCase().includes(query)
     );
-    console.log('[GuessInput] Filtro aplicado:', results);
     setFiltered(results);
     setShowDropdown(true);
   }, [input, characters]);
@@ -61,7 +58,6 @@ export default function GuessInput({ onSelect }: { onSelect: (name: string) => v
   const handleSubmit = () => {
     console.log('[GuessInput] Enviando palpite:', input);
     if (!input.trim()) {
-      console.warn('[GuessInput] Campo vazio, não enviando');
       return;
     }
     onSelect(input.trim());
@@ -80,19 +76,17 @@ export default function GuessInput({ onSelect }: { onSelect: (name: string) => v
           }}
           placeholder="Digite o nome do personagem..."
           onFocus={() => {
-            console.log('[GuessInput] Foco no input');
             if (input) setShowDropdown(true);
           }}
           onKeyDown={(e) => {
             if (e.key === 'Enter') {
               e.preventDefault();
-              console.log('[GuessInput] Enter pressionado');
               handleSubmit();
             }
           }}
-          className="flex-1 px-4 py-2 outline-none"
+          className="flex-1 px-4 py-2 outline-none text-black"
         />
-        <div className="px-2 text-gray-400">
+        <div className="px-2 text-gray-800">
           <Search size={18} />
         </div>
         <button
