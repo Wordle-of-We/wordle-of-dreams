@@ -56,18 +56,6 @@ const stickers = [
     alt: "Rei Julien",
     className: "absolute bottom-[30%] right-[5%] w-24 opacity-40 animate-float-bigger pointer-events-none",
   },
-
-  // Quarta fila (canto inferior)
-  {
-    src: "/.png",
-    alt: "",
-    className: "absolute bottom-[20%] left-[5%] w-32 opacity-40 animate-float-bigger pointer-events-none",
-  },
-  {
-    src: "/.png",
-    alt: "",
-    className: "absolute bottom-[20%] right-[5%] w-32 opacity-40 animate-float-bigger pointer-events-none",
-  },
 ];
 
 export default function StickerBackground() {

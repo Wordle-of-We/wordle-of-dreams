@@ -2,10 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import api from '@/lib/api';
-// Add this import or type definition for Character
-// import { Character } from '@/types/character'; // Uncomment if you have this type elsewhere
 
-// If you don't have a Character type, define a basic one here:
 type Character = {
   id: number;
   name: string;

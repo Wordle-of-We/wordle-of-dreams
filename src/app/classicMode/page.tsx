@@ -1,10 +1,11 @@
 'use client';
-
+import { useEffect, useState } from 'react';
 import { useClassicMode } from '@/hooks/useClassicMode';
 import GuessInput from '../components/GuessInput';
 import { CheckCircle, XCircle, User, Users, Scissors, Heart, Film, Zap, ShieldCheck, } from 'lucide-react';
 import Image from 'next/image';
 import StickerBackground from '../components/StickerBackground';
+import { VictoryModal } from '../components/VictoryModal';
 
 const getIconForKey = (key: string) => {
   switch (key.toLowerCase()) {
@@ -48,7 +49,17 @@ const translateKey = (key: string) => {
 
 export default function ClassicMode() {
   const { guesses, characters, submitGuess, loading, playId } = useClassicMode();
+  const [showVictoryModal, setShowVictoryModal] = useState(false);
 
+  useEffect(() => {
+  if (guesses.some((g) => g.isCorrect)) {
+    setShowVictoryModal(true);
+  }
+}, [guesses]);
+
+{showVictoryModal && (
+<VictoryModal onClose={() => setShowVictoryModal(false)} />
+)}
   const getStatusColor = (guessed: any, target: any) => {
     if (JSON.stringify(guessed) === JSON.stringify(target)) return 'bg-green-400';
     if (
