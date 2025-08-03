@@ -2,12 +2,12 @@
 
 import { useEffect, useState } from 'react';
 import api from '@/lib/api';
+import { getDailyProgress } from '@/services/playService';
 
 type Character = {
   id: number;
   name: string;
   imageUrl?: string;
-  // Add other properties as needed
 };
 
 interface Comparison<T> {
@@ -15,7 +15,7 @@ interface Comparison<T> {
   target: T;
 }
 
-interface GuessResult {
+export interface GuessResult {
   character: any;
   guess: string;
   isCorrect: boolean;
@@ -26,6 +26,7 @@ interface GuessResult {
   triedAt: string;
 }
 
+
 export function useClassicMode() {
   const [playId, setPlayId] = useState<number | null>(null);
   const [guesses, setGuesses] = useState<GuessResult[]>([]);
@@ -33,51 +34,75 @@ export function useClassicMode() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
- useEffect(() => {
-  const start = async () => {
-    try {
-      const res = await api.post("/plays/start", { modeConfigId: 1 });
-      console.log("[useClassicGame] Partida iniciada:", res.data);
-      console.log("[useClassicGame] playId recebido:", res.data.playId);
-      setPlayId(res.data.playId);
-    } catch (err) {
-      console.error("Erro ao iniciar partida:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-  start();
-}, []);
+  const [hasWon, setHasWon] = useState<boolean>(false);
+  const [targetCharacter, setTargetCharacter] = useState<Character | null>(null);
+  const [showVictoryModal, setShowVictoryModal] = useState<boolean>(false);
 
-  // Envia palpite
+  useEffect(() => {
+    const start = async () => {
+      try {
+        const res = await api.post("/plays/start", { modeConfigId: 1 });
+        const id = res.data.playId;
+        setPlayId(id);
+
+        // Carrega progresso
+        const progress = await getDailyProgress(1);
+        console.log("[useClassicMode] progresso do dia:", progress);
+
+        setGuesses(progress.attempts ?? []);
+        setHasWon(progress.completed ?? false);
+        setTargetCharacter(progress.target ?? null);
+        if (progress.completed) {
+          setHasWon(true);
+          setShowVictoryModal(true);
+        }
+      } catch (err) {
+        console.error("Erro ao iniciar partida:", err);
+        setError("Erro ao iniciar partida");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    start();
+  }, []);
+
   const submitGuess = async (name: string) => {
     if (!playId) {
-      console.warn('[useClassicGame] ⚠️ playId ainda não disponível. Palpite ignorado.');
+      console.warn('[useClassicMode] playId não disponível.');
       return;
     }
-    const idToUse = playId;
-
 
     const payload = { guess: name };
-    console.log(`[useClassicGame] Enviando palpite para /plays/${idToUse}/guess`, payload);
-
     try {
-      const res = await api.post(`/plays/${idToUse}/guess`, payload);
-      console.log('[useClassicGame] Resposta recebida:', res.data);
+      const res = await api.post(`/plays/${playId}/guess`, payload);
+      console.log('[useClassicMode] novo palpite:', res.data);
 
       setGuesses((prev) => [...prev, res.data]);
+
+      if (res.data.isCorrect) {
+        setHasWon(true);
+        setShowVictoryModal(true);
+        if (!targetCharacter) {
+          const progress = await getDailyProgress(1);
+          setTargetCharacter(progress.target ?? null);
+        }
+      }
     } catch (err: any) {
-      console.error('[useClassicGame] ❌ Erro ao enviar palpite:', err.response?.data || err.message);
+      console.error('[useClassicMode] erro ao enviar palpite:', err.response?.data || err.message);
     }
   };
-
 
   return {
     playId,
     guesses,
+    characters,
     loading,
     error,
+    hasWon,
+    targetCharacter,
+    showVictoryModal,
+    setShowVictoryModal,
     submitGuess,
-    characters,
   };
 }

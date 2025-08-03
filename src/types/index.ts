@@ -1,7 +1,6 @@
 export interface Guess {
    id: number;
   guess: {
-    toLowerCase(): unknown;
     id: number;
     name: string;
     imageUrl1: string;
@@ -16,6 +15,7 @@ export interface Guess {
   };
   createdAt: string;
 }
+
 export interface Character {
   id: number;
   name: string;
