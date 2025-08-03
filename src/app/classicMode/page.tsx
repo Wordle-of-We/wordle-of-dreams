@@ -4,10 +4,10 @@ import { useClassicMode } from '@/hooks/useClassicMode';
 import GuessInput from '../components/GuessInput';
 import { CheckCircle, XCircle, User, Users, Scissors, Heart, Film, Zap, ShieldCheck, } from 'lucide-react';
 import StickerBackground from '../components/StickerBackground';
-import { VictoryModal } from '../components/VictoryModal';
 import { getDailyProgress } from '@/services/playService';
 import type { Guess, Character } from '@/types/index';
 import GuessCard from '../components/GuessCard';
+import VictoryModal from '../components/VictoryModal';
 
 
 export default function ClassicMode() {
