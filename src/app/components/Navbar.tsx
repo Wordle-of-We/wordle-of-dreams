@@ -28,7 +28,7 @@ export default function Navbar() {
               <Link href="/emojiMode" className="block px-4 py-2 text-gray-700 hover:bg-gray-100">
                 Emoji
               </Link>
-              <Link href="/game/descricao" className="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+              <Link href="/descriptionMode" className="block px-4 py-2 text-gray-700 hover:bg-gray-100">
                 Descrição
               </Link>
               <Link href="/game/imagem" className="block px-4 py-2 text-gray-700 hover:bg-gray-100">

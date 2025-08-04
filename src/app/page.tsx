@@ -47,7 +47,7 @@ export default function HomePage() {
             title="Descrição"
             description="Use descrições detalhadas para encontrar o personagem misterioso"
             icon={<FileText className="text-yellow-500 w-8 h-8" />}
-            href="/game?modo=descricao"
+            href="/descriptionMode"
           />
           <ModoItem
             title="Imagem"
