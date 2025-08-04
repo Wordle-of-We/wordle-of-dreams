@@ -41,7 +41,7 @@ export default function HomePage() {
             title="Emojis"
             description="Descubra o personagem através de pistas divertidas com emojis"
             icon={<Smile className="text-orange-500 w-8 h-8" />}
-            href="/game?modo=emoji"
+            href="/emojiMode"
           />
           <ModoItem
             title="Descrição"

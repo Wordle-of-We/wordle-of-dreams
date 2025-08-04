@@ -22,10 +22,10 @@ export default function Navbar() {
               </svg>
             </button>
             <div className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded shadow-lg opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-opacity z-50">
-              <Link href="/game/classico" className="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+              <Link href="/classicMode" className="block px-4 py-2 text-gray-700 hover:bg-gray-100">
                 Clássico
               </Link>
-              <Link href="/game/emoji" className="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+              <Link href="/emojiMode" className="block px-4 py-2 text-gray-700 hover:bg-gray-100">
                 Emoji
               </Link>
               <Link href="/game/descricao" className="block px-4 py-2 text-gray-700 hover:bg-gray-100">
