@@ -18,7 +18,8 @@ export default function EmojiMode() {
     showVictoryModal,
     setShowVictoryModal,
     submitGuess,
-    revealedEmojis
+    revealedEmojis,
+    characters
   } = useEmojiMode();
 
   // Debug: monitora mudanças no estado de vitória

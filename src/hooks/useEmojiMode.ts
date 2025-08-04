@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { getAllCharacters } from '@/services/characterService';
+import api from '@/lib/api';
+import { getDailyProgress } from '@/services/playService';
 
 type Character = {
   id: number;
@@ -27,7 +28,9 @@ export interface GuessResult {
 }
 
 export function useEmojiMode() {
+  const [playId, setPlayId] = useState<number | null>(null);
   const [guesses, setGuesses] = useState<GuessResult[]>([]);
+  const [characters, setCharacters] = useState<Character[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -36,92 +39,59 @@ export function useEmojiMode() {
   const [showVictoryModal, setShowVictoryModal] = useState<boolean>(false);
   const [revealedEmojis, setRevealedEmojis] = useState<string[]>([]);
 
-  // Chaves para localStorage específicas do modo emoji
-  const getStorageKey = (key: string) => `emojiMode_${new Date().toDateString()}_${key}`;
-
-  // Funções para salvar/carregar progresso local
-  const saveLocalProgress = (guesses: GuessResult[], hasWon: boolean, revealedEmojis: string[], targetCharacter: Character) => {
-    try {
-      localStorage.setItem(getStorageKey('guesses'), JSON.stringify(guesses));
-      localStorage.setItem(getStorageKey('hasWon'), JSON.stringify(hasWon));
-      localStorage.setItem(getStorageKey('revealedEmojis'), JSON.stringify(revealedEmojis));
-      localStorage.setItem(getStorageKey('targetCharacter'), JSON.stringify(targetCharacter));
-    } catch (err) {
-      console.warn('Erro ao salvar progresso local:', err);
-    }
-  };
-
-  const loadLocalProgress = () => {
-    try {
-      const savedGuesses = localStorage.getItem(getStorageKey('guesses'));
-      const savedHasWon = localStorage.getItem(getStorageKey('hasWon'));
-      const savedEmojis = localStorage.getItem(getStorageKey('revealedEmojis'));
-      const savedTarget = localStorage.getItem(getStorageKey('targetCharacter'));
-
-      return {
-        guesses: savedGuesses ? JSON.parse(savedGuesses) : [],
-        hasWon: savedHasWon ? JSON.parse(savedHasWon) : false,
-        revealedEmojis: savedEmojis ? JSON.parse(savedEmojis) : [],
-        targetCharacter: savedTarget ? JSON.parse(savedTarget) : null
-      };
-    } catch (err) {
-      console.warn('Erro ao carregar progresso local:', err);
-      return { guesses: [], hasWon: false, revealedEmojis: [], targetCharacter: null };
-    }
-  };
-
-  // Debug: monitora mudanças no estado hasWon
-  useEffect(() => {
-    console.log('[useEmojiMode] 🔄 Estado hasWon mudou para:', hasWon);
-    console.log('[useEmojiMode] 🔄 Estado showVictoryModal:', showVictoryModal);
-  }, [hasWon, showVictoryModal]);
-
   useEffect(() => {
     const start = async () => {
       try {
-        console.log("[useEmojiMode] 🚀 Iniciando modo emoji (sem backend)");
+        console.log("[useEmojiMode] 🚀 Iniciando modo emoji");
         
-        // Carrega progresso local do modo emoji
-        const localProgress = loadLocalProgress();
-        console.log("[useEmojiMode] 📁 Progresso local:", localProgress);
+        // Busca a seleção diária da API
+        const response = await api.get('/daily-selection');
+        console.log("[useEmojiMode] � Resposta da API:", response.data);
         
-        // Se há progresso salvo, usa ele
-        if (localProgress.targetCharacter) {
-          console.log("[useEmojiMode] 🔄 Carregando progresso salvo");
-          setTargetCharacter(localProgress.targetCharacter);
-          setGuesses(localProgress.guesses);
-          setHasWon(localProgress.hasWon);
-          setRevealedEmojis(localProgress.revealedEmojis);
+        if (!response.data || !Array.isArray(response.data)) {
+          setError("Erro ao carregar dados da seleção diária");
+          return;
+        }
+
+        // Filtra pela configuração do modo emoji (modeConfigId: 2)
+        const emojiModeSelection = response.data.find((selection: any) => selection.modeConfigId === 2);
+        console.log("[useEmojiMode] 🎯 Seleção do modo emoji:", emojiModeSelection);
+        
+        if (!emojiModeSelection) {
+          setError("Nenhuma seleção encontrada para o modo emoji");
+          return;
+        }
+
+        // Define o personagem alvo
+        setTargetCharacter(emojiModeSelection.character);
+        setCharacters(emojiModeSelection.characters);
+        
+        // Inicia uma nova partida
+        const res = await api.post("/plays/start", { modeConfigId: 2 });
+        const id = res.data.playId;
+        setPlayId(id);
+        
+        // Carrega o progresso existente do backend
+        const progress = await getDailyProgress(2);
+        console.log("[useEmojiMode] 📁 Progresso carregado:", progress);
+
+        if (progress && progress.attempts && progress.attempts.length > 0) {
+          setGuesses(progress.attempts);
+          setHasWon(progress.completed || false);
           
-          if (localProgress.hasWon) {
+          // Calcula os emojis revelados baseado no número de tentativas
+          const revealedCount = Math.min(progress.attempts.length + 1, emojiModeSelection.character.emojis?.length || 0);
+          const newRevealedEmojis = emojiModeSelection.character.emojis?.slice(0, revealedCount) || [];
+          setRevealedEmojis(newRevealedEmojis);
+          
+          if (progress.completed) {
+            setRevealedEmojis(emojiModeSelection.character.emojis || []);
             setShowVictoryModal(true);
           }
         } else {
-          console.log("[useEmojiMode] 🆕 Iniciando novo jogo");
-          
-          // Busca todos os personagens disponíveis
-          const allCharacters = await getAllCharacters();
-          const charactersWithEmojis = allCharacters.filter((char: any) => char.emojis && char.emojis.length > 0);
-          
-          if (charactersWithEmojis.length === 0) {
-            setError("Nenhum personagem com emojis disponível");
-            return;
-          }
-
-          // Seleciona um personagem baseado na data atual para consistência
-          const today = new Date().toDateString();
-          const index = today.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % charactersWithEmojis.length;
-          const selectedCharacter = charactersWithEmojis[index];
-          
-          console.log("[useEmojiMode] 🎯 Personagem selecionado:", selectedCharacter.name);
-          setTargetCharacter(selectedCharacter);
-          
-          // Revela o primeiro emoji
-          if (selectedCharacter.emojis && selectedCharacter.emojis.length > 0) {
-            const initialEmojis = [selectedCharacter.emojis[0]];
-            setRevealedEmojis(initialEmojis);
-            // Salva progresso inicial
-            saveLocalProgress([], false, initialEmojis, selectedCharacter);
+          // Primeiro jogo do dia - revela apenas o primeiro emoji
+          if (emojiModeSelection.character.emojis && emojiModeSelection.character.emojis.length > 0) {
+            setRevealedEmojis([emojiModeSelection.character.emojis[0]]);
           }
         }
       } catch (err) {
@@ -136,68 +106,55 @@ export function useEmojiMode() {
   }, []);
 
   const submitGuess = async (name: string) => {
-    if (!targetCharacter) {
-      console.warn('[useEmojiMode] targetCharacter não disponível.');
+    if (!playId) {
+      console.warn('[useEmojiMode] playId não disponível.');
       return;
     }
 
-    console.log('[useEmojiMode] Enviando palpite:', name);
-    console.log('[useEmojiMode] Estado atual - hasWon:', hasWon, 'targetCharacter:', targetCharacter?.name);
+    const payload = { guess: name };
+    try {
+      const res = await api.post(`/plays/${playId}/guess`, payload);
+      console.log('[useEmojiMode] novo palpite:', res.data);
 
-    // Verifica se o palpite está correto
-    const isCorrect = name.toLowerCase() === targetCharacter.name.toLowerCase();
-    console.log('[useEmojiMode] isCorrect:', isCorrect);
-    console.log('[useEmojiMode] Comparação:', name.toLowerCase(), 'vs', targetCharacter.name.toLowerCase());
+      setGuesses((prev) => [...prev, res.data]);
 
-    // Cria o objeto de resposta no formato GuessResult
-    const guessData: GuessResult = {
-      character: targetCharacter,
-      guess: name,
-      isCorrect: isCorrect,
-      guessedImageUrl1: targetCharacter.imageUrl || '',
-      comparison: {}, // Para o modo emoji, não precisamos das comparações
-      triedAt: new Date().toISOString()
-    };
-
-    const newGuesses = [...guesses, guessData];
-    setGuesses(newGuesses);
-
-    if (isCorrect) {
-      console.log('[useEmojiMode] 🎉 ACERTOU! Definindo vitória...');
-      
-      setHasWon(true);
-      
-      // Revela todos os emojis quando ganha
-      if (targetCharacter.emojis) {
-        console.log('[useEmojiMode] Revelando todos os emojis:', targetCharacter.emojis);
-        setRevealedEmojis(targetCharacter.emojis);
-      }
-      
-      // Salva progresso da vitória
-      saveLocalProgress(newGuesses, true, targetCharacter.emojis || [], targetCharacter);
-      
-      // Mostra modal de vitória após um delay
-      setTimeout(() => {
-        setShowVictoryModal(true);
-      }, 1000);
-    } else {
-      console.log('[useEmojiMode] ❌ Errou, revelando mais emoji...');
-      
-      // Revela mais um emoji a cada tentativa errada
-      if (targetCharacter.emojis) {
-        const emojisToReveal = Math.min(newGuesses.length + 1, targetCharacter.emojis.length);
-        console.log('[useEmojiMode] Revelando', emojisToReveal, 'emojis de', targetCharacter.emojis.length);
-        const newRevealedEmojis = targetCharacter.emojis.slice(0, emojisToReveal);
-        setRevealedEmojis(newRevealedEmojis);
+      if (res.data.isCorrect) {
+        console.log('[useEmojiMode] 🎉 ACERTOU! Definindo vitória...');
+        setHasWon(true);
         
-        // Salva progresso
-        saveLocalProgress(newGuesses, false, newRevealedEmojis, targetCharacter);
+        // Revela todos os emojis quando ganha
+        if (targetCharacter && targetCharacter.emojis) {
+          console.log('[useEmojiMode] Revelando todos os emojis:', targetCharacter.emojis);
+          setRevealedEmojis(targetCharacter.emojis);
+        }
+        
+        setShowVictoryModal(true);
+        
+        if (!targetCharacter) {
+          const progress = await getDailyProgress(2);
+          setTargetCharacter(progress.target ?? null);
+        }
+      } else {
+        console.log('[useEmojiMode] ❌ Errou, revelando mais emoji...');
+        
+        // Revela mais um emoji a cada tentativa errada
+        if (targetCharacter && targetCharacter.emojis) {
+          const newGuesses = [...guesses, res.data];
+          const emojisToReveal = Math.min(newGuesses.length + 1, targetCharacter.emojis.length);
+          console.log('[useEmojiMode] Revelando', emojisToReveal, 'emojis de', targetCharacter.emojis.length);
+          const newRevealedEmojis = targetCharacter.emojis.slice(0, emojisToReveal);
+          setRevealedEmojis(newRevealedEmojis);
+        }
       }
+    } catch (err: any) {
+      console.error('[useEmojiMode] erro ao enviar palpite:', err.response?.data || err.message);
     }
   };
 
   return {
+    playId,
     guesses,
+    characters,
     loading,
     error,
     hasWon,
