@@ -27,7 +27,20 @@ export default function DescriptionMode() {
     console.log('  - showVictoryModal:', showVictoryModal);
     console.log('  - guesses.length:', guesses.length);
     console.log('  - targetCharacter:', targetCharacter?.name);
-  }, [hasWon, showVictoryModal, guesses.length]);
+    console.log('  - targetCharacter.description:', targetCharacter?.description);
+  }, [hasWon, showVictoryModal, guesses.length, targetCharacter]);
+
+  // Transforma os guesses para o formato esperado pelo GuessList
+  const transformedGuesses = guesses.map(guess => ({
+    guess: guess.guess,
+    isCorrect: guess.isCorrect,
+    triedAt: guess.triedAt,
+    character: {
+      id: guess.character?.id || 0,
+      name: guess.guess,
+      imageUrl: guess.guessedImageUrl1
+    }
+  }));
 
   const handleGuess = (name: string) => {
     console.log('[DescriptionMode] Palpite:', name, 'hasWon:', hasWon);
@@ -132,11 +145,11 @@ export default function DescriptionMode() {
 
           {/* Lista de palpites */}
           <div className="mb-6 sm:mb-8 px-2">
-            <GuessList guesses={guesses} />
+            <GuessList guesses={transformedGuesses} />
           </div>
 
           {/* Mensagem quando não há palpites */}
-          {guesses.length === 0 && !hasWon && targetCharacter && (
+          {transformedGuesses.length === 0 && !hasWon && targetCharacter && (
             <div className="text-center py-8 sm:py-12 flex justify-center px-2">
               <div className="bg-white/70 backdrop-blur-sm rounded-xl p-6 sm:p-8 shadow-lg border border-white/20 max-w-md mx-2">
                 <h3 className="text-lg sm:text-xl font-semibold text-gray-700 mb-2">
@@ -146,7 +159,7 @@ export default function DescriptionMode() {
                   Leia a descrição acima e tente descobrir qual personagem da DreamWorks ela descreve.
                 </p>
                 <div className="text-xs sm:text-sm text-gray-500">
-                  💡 Dica: Leia atentamente a descrição completa acima!
+                  💡 Dica: Leia a descrição com atenção e tente adivinhar o personagem!
                 </div>
               </div>
             </div>

@@ -1,14 +1,14 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { getAllCharacters } from '@/services/characterService';
+import api from '@/lib/api';
+import { getDailyProgress } from '@/services/playService';
 
 type Character = {
   id: number;
   name: string;
-  description?: string;
-  emojis: string[];
   imageUrl?: string;
+  description?: string;
 };
 
 interface Comparison<T> {
@@ -28,7 +28,9 @@ export interface GuessResult {
 }
 
 export function useDescriptionMode() {
+  const [playId, setPlayId] = useState<number | null>(null);
   const [guesses, setGuesses] = useState<GuessResult[]>([]);
+  const [characters, setCharacters] = useState<Character[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -36,88 +38,42 @@ export function useDescriptionMode() {
   const [targetCharacter, setTargetCharacter] = useState<Character | null>(null);
   const [showVictoryModal, setShowVictoryModal] = useState<boolean>(false);
 
-  // Chaves para localStorage específicas do modo descrição
-  const getStorageKey = (key: string) => `descriptionMode_${new Date().toDateString()}_${key}`;
-
-  // Funções para salvar/carregar progresso local
-  const saveLocalProgress = (guesses: GuessResult[], hasWon: boolean, targetCharacter: Character) => {
-    try {
-      localStorage.setItem(getStorageKey('guesses'), JSON.stringify(guesses));
-      localStorage.setItem(getStorageKey('hasWon'), JSON.stringify(hasWon));
-      localStorage.setItem(getStorageKey('targetCharacter'), JSON.stringify(targetCharacter));
-    } catch (err) {
-      console.warn('Erro ao salvar progresso local:', err);
-    }
-  };
-
-  const loadLocalProgress = () => {
-    try {
-      const savedGuesses = localStorage.getItem(getStorageKey('guesses'));
-      const savedHasWon = localStorage.getItem(getStorageKey('hasWon'));
-      const savedTarget = localStorage.getItem(getStorageKey('targetCharacter'));
-
-      return {
-        guesses: savedGuesses ? JSON.parse(savedGuesses) : [],
-        hasWon: savedHasWon ? JSON.parse(savedHasWon) : false,
-        targetCharacter: savedTarget ? JSON.parse(savedTarget) : null
-      };
-    } catch (err) {
-      console.warn('Erro ao carregar progresso local:', err);
-      return { guesses: [], hasWon: false, targetCharacter: null };
-    }
-  };
-
-  // Debug: monitora mudanças no estado hasWon
-  useEffect(() => {
-    console.log('[useDescriptionMode] 🔄 Estado hasWon mudou para:', hasWon);
-    console.log('[useDescriptionMode] 🔄 Estado showVictoryModal:', showVictoryModal);
-  }, [hasWon, showVictoryModal]);
-
   useEffect(() => {
     const start = async () => {
       try {
-        console.log("[useDescriptionMode] 🚀 Iniciando modo descrição (sem backend)");
+        // Busca o personagem sorteado do dia para o modo descrição
+        const dailyResponse = await api.get('/daily-selection');
+        const dailySelections = dailyResponse.data;
         
-        // Carrega progresso local do modo descrição
-        const localProgress = loadLocalProgress();
-        console.log("[useDescriptionMode] 📁 Progresso local:", localProgress);
+        // Filtra pelo modo descrição (modeConfigId: 3)
+        const descriptionMode = dailySelections.find((selection: any) => selection.modeConfigId === 3);
         
-        // Se há progresso salvo, usa ele
-        if (localProgress.targetCharacter) {
-          console.log("[useDescriptionMode] 🔄 Carregando progresso salvo");
-          setTargetCharacter(localProgress.targetCharacter);
-          setGuesses(localProgress.guesses);
-          setHasWon(localProgress.hasWon);
-          
-          if (localProgress.hasWon) {
-            setShowVictoryModal(true);
-          }
-        } else {
-          console.log("[useDescriptionMode] 🆕 Iniciando novo jogo");
-          
-          // Busca todos os personagens disponíveis
-          const allCharacters = await getAllCharacters();
-          const charactersWithDescription = allCharacters.filter((char: any) => char.description && char.description.length > 0);
-          
-          if (charactersWithDescription.length === 0) {
-            setError("Nenhum personagem com descrição disponível");
-            return;
-          }
+        if (!descriptionMode) {
+          throw new Error("Modo descrição não encontrado na seleção diária");
+        }
+        
+        const selectedCharacter = descriptionMode.character;
+        console.log("[useDescriptionMode] personagem do dia:", selectedCharacter);
+        setTargetCharacter(selectedCharacter);
 
-          // Seleciona um personagem baseado na data atual para consistência
-          const today = new Date().toDateString();
-          const index = today.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % charactersWithDescription.length;
-          const selectedCharacter = charactersWithDescription[index];
-          
-          console.log("[useDescriptionMode] 🎯 Personagem selecionado:", selectedCharacter.name);
-          setTargetCharacter(selectedCharacter);
-          
-          // Salva progresso inicial
-          saveLocalProgress([], false, selectedCharacter);
+        // Inicia uma nova partida
+        const res = await api.post("/plays/start", { modeConfigId: 3 });
+        const id = res.data.playId;
+        setPlayId(id);
+
+        // Carrega progresso se existir
+        const progress = await getDailyProgress(3);
+        console.log("[useDescriptionMode] progresso do dia:", progress);
+
+        setGuesses(progress.attempts ?? []);
+        setHasWon(progress.completed ?? false);
+        if (progress.completed) {
+          setHasWon(true);
+          setShowVictoryModal(true);
         }
       } catch (err) {
-        console.error("Erro ao iniciar modo descrição:", err);
-        setError("Erro ao iniciar modo descrição");
+        console.error("Erro ao iniciar partida:", err);
+        setError("Erro ao iniciar partida");
       } finally {
         setLoading(false);
       }
@@ -127,54 +83,35 @@ export function useDescriptionMode() {
   }, []);
 
   const submitGuess = async (name: string) => {
-    if (!targetCharacter) {
-      console.warn('[useDescriptionMode] targetCharacter não disponível.');
+    if (!playId) {
+      console.warn('[useDescriptionMode] playId não disponível.');
       return;
     }
 
-    console.log('[useDescriptionMode] Enviando palpite:', name);
-    console.log('[useDescriptionMode] Estado atual - hasWon:', hasWon, 'targetCharacter:', targetCharacter?.name);
+    const payload = { guess: name };
+    try {
+      const res = await api.post(`/plays/${playId}/guess`, payload);
+      console.log('[useDescriptionMode] novo palpite:', res.data);
 
-    // Verifica se o palpite está correto
-    const isCorrect = name.toLowerCase() === targetCharacter.name.toLowerCase();
-    console.log('[useDescriptionMode] isCorrect:', isCorrect);
-    console.log('[useDescriptionMode] Comparação:', name.toLowerCase(), 'vs', targetCharacter.name.toLowerCase());
+      setGuesses((prev) => [...prev, res.data]);
 
-    // Cria o objeto de resposta no formato GuessResult
-    const guessData: GuessResult = {
-      character: targetCharacter,
-      guess: name,
-      isCorrect: isCorrect,
-      guessedImageUrl1: targetCharacter.imageUrl || '',
-      comparison: {}, // Para o modo descrição, não precisamos das comparações
-      triedAt: new Date().toISOString()
-    };
-
-    const newGuesses = [...guesses, guessData];
-    setGuesses(newGuesses);
-
-    if (isCorrect) {
-      console.log('[useDescriptionMode] 🎉 ACERTOU! Definindo vitória...');
-      
-      setHasWon(true);
-      
-      // Salva progresso da vitória
-      saveLocalProgress(newGuesses, true, targetCharacter);
-      
-      // Mostra modal de vitória após um delay
-      setTimeout(() => {
+      if (res.data.isCorrect) {
+        setHasWon(true);
         setShowVictoryModal(true);
-      }, 1000);
-    } else {
-      console.log('[useDescriptionMode] ❌ Errou, continue tentando...');
-      
-      // Salva progresso
-      saveLocalProgress(newGuesses, false, targetCharacter);
+        if (!targetCharacter) {
+          const progress = await getDailyProgress(3);
+          setTargetCharacter(progress.target ?? null);
+        }
+      }
+    } catch (err: any) {
+      console.error('[useDescriptionMode] erro ao enviar palpite:', err.response?.data || err.message);
     }
   };
 
   return {
+    playId,
     guesses,
+    characters,
     loading,
     error,
     hasWon,
