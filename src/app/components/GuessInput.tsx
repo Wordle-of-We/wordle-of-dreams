@@ -84,21 +84,22 @@ export default function GuessInput({ onSelect }: { onSelect: (name: string) => v
               handleSubmit();
             }
           }}
-          className="flex-1 px-4 py-2 outline-none text-black"
+          className="flex-1 px-3 sm:px-4 py-2 sm:py-3 outline-none text-black text-sm sm:text-base"
         />
         <div className="px-2 text-gray-800">
-          <Search size={18} />
+          <Search size={16} className="sm:w-[18px] sm:h-[18px]" />
         </div>
         <button
           onClick={handleSubmit}
-          className="bg-orange-500 px-4 py-2 text-white flex items-center gap-1 hover:brightness-110"
+          className="bg-orange-500 px-3 sm:px-4 py-2 sm:py-3 text-white flex items-center gap-1 hover:brightness-110 text-sm sm:text-base"
         >
-          Enviar <Send size={16} />
+          <span className="hidden sm:inline">Enviar</span>
+          <Send size={14} className="sm:w-4 sm:h-4" />
         </button>
       </div>
 
       {showDropdown && filtered.length > 0 && (
-        <ul className="absolute bg-white border w-full mt-1 rounded shadow z-10 max-h-64 overflow-y-auto">
+        <ul className="absolute bg-white border w-full mt-1 rounded shadow z-10 max-h-48 sm:max-h-64 overflow-y-auto">
           {filtered.map((char) => (
             <li
               key={char.id}
@@ -108,7 +109,7 @@ export default function GuessInput({ onSelect }: { onSelect: (name: string) => v
                 setInput('');
                 setShowDropdown(false);
               }}
-              className="px-4 py-2 cursor-pointer hover:bg-gray-100"
+              className="px-3 sm:px-4 py-2 cursor-pointer hover:bg-gray-100 text-sm sm:text-base"
             >
               {char.name}
             </li>
