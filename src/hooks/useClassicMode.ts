@@ -26,7 +26,6 @@ export interface GuessResult {
   triedAt: string;
 }
 
-
 export function useClassicMode() {
   const [playId, setPlayId] = useState<number | null>(null);
   const [guesses, setGuesses] = useState<GuessResult[]>([]);

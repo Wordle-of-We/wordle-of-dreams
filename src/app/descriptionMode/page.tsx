@@ -5,7 +5,7 @@ import VictoryModal from '../components/VictoryModal';
 import StickerBackground from '../components/StickerBackground';
 import DescriptionDisplay from '../components/DescriptionDisplay';
 import GuessList from '../components/GuessList';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useDescriptionMode } from '@/hooks/useDescriptionMode';
 
 export default function DescriptionMode() {
@@ -20,7 +20,6 @@ export default function DescriptionMode() {
     submitGuess
   } = useDescriptionMode();
 
-  // Debug: monitora mudanças no estado de vitória
   useEffect(() => {
     console.log('[DescriptionMode] 📊 Estado atualizado:');
     console.log('  - hasWon:', hasWon);
@@ -30,35 +29,24 @@ export default function DescriptionMode() {
     console.log('  - targetCharacter.description:', targetCharacter?.description);
   }, [hasWon, showVictoryModal, guesses.length, targetCharacter]);
 
-  // Transforma os guesses para o formato esperado pelo GuessList
   const transformedGuesses = guesses.map(guess => ({
     guess: guess.guess,
     isCorrect: guess.isCorrect,
-    triedAt: guess.triedAt,
-    character: {
-      id: guess.character?.id || 0,
-      name: guess.guess,
-      imageUrl: guess.guessedImageUrl1
-    }
+    triedAt: guess.triedAt
   }));
 
   const handleGuess = (name: string) => {
-    console.log('[DescriptionMode] Palpite:', name, 'hasWon:', hasWon);
     if (!hasWon) {
       submitGuess(name);
-    } else {
-      console.log('[DescriptionMode] Jogo já foi ganho, não enviando palpite');
     }
   };
 
   if (loading) {
     return (
-      <div className="">
-        <div className="flex items-center justify-center min-h-screen px-4">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-24 w-24 sm:h-32 sm:w-32 border-b-2 border-blue-500 mx-auto mb-4"></div>
-            <p className="text-base sm:text-lg text-gray-600">Carregando jogo...</p>
-          </div>
+      <div className="flex items-center justify-center min-h-screen px-4">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-24 w-24 sm:h-32 sm:w-32 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-base sm:text-lg text-gray-600">Carregando jogo...</p>
         </div>
       </div>
     );
@@ -83,13 +71,11 @@ export default function DescriptionMode() {
   }
 
   return (
-    <div className="">
+    <div>
       <StickerBackground />
 
-      {/* Conteúdo principal */}
       <div className="pt-16 sm:pt-24 pb-4 sm:pb-8 px-3 sm:px-4 relative z-10">
         <div className="max-w-4xl mx-auto">
-          {/* Título */}
           <div className="text-center mb-6 sm:mb-8">
             <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800 mb-2">
               Modo Descrição 📝
@@ -99,14 +85,10 @@ export default function DescriptionMode() {
             </p>
           </div>
 
-          {/* Exibição da descrição */}
-          {targetCharacter && targetCharacter.description && (
-            <DescriptionDisplay 
-              description={targetCharacter.description}
-            />
+          {targetCharacter?.description && (
+            <DescriptionDisplay description={targetCharacter.description} />
           )}
 
-          {/* Input de palpite */}
           {!hasWon && (
             <div className="mb-6 sm:mb-8 flex justify-center px-2">
               <div className="w-full max-w-md">
@@ -115,7 +97,6 @@ export default function DescriptionMode() {
             </div>
           )}
 
-          {/* Mensagem de vitória (sem modal) */}
           {hasWon && !showVictoryModal && (
             <div className="text-center py-6 sm:py-8 px-2">
               <div className="bg-green-100 border border-green-300 rounded-xl p-4 sm:p-6 shadow-lg mx-2">
@@ -128,7 +109,7 @@ export default function DescriptionMode() {
                 {targetCharacter && (
                   <div className="mt-4">
                     <p className="text-sm sm:text-base text-green-600 font-semibold">
-                      O personagem secreto era: {targetCharacter.name}! 
+                      O personagem secreto era: {targetCharacter.name}!
                     </p>
                     {targetCharacter.description && (
                       <div className="mt-3 p-3 bg-green-50 rounded-lg border border-green-200">
@@ -143,13 +124,11 @@ export default function DescriptionMode() {
             </div>
           )}
 
-          {/* Lista de palpites */}
           <div className="mb-6 sm:mb-8 px-2">
             <GuessList guesses={transformedGuesses} />
           </div>
 
-          {/* Mensagem quando não há palpites */}
-          {transformedGuesses.length === 0 && !hasWon && targetCharacter && (
+          {transformedGuesses.length === 0 && !hasWon && (
             <div className="text-center py-8 sm:py-12 flex justify-center px-2">
               <div className="bg-white/70 backdrop-blur-sm rounded-xl p-6 sm:p-8 shadow-lg border border-white/20 max-w-md mx-2">
                 <h3 className="text-lg sm:text-xl font-semibold text-gray-700 mb-2">
@@ -165,7 +144,6 @@ export default function DescriptionMode() {
             </div>
           )}
 
-          {/* Mensagem quando não há personagem carregado */}
           {!targetCharacter && !loading && (
             <div className="text-center py-8 sm:py-12 flex justify-center px-2">
               <div className="bg-white/70 backdrop-blur-sm rounded-xl p-6 sm:p-8 shadow-lg border border-white/20 max-w-md mx-2">
@@ -179,7 +157,6 @@ export default function DescriptionMode() {
             </div>
           )}
 
-          {/* Mensagem quando personagem não tem descrição */}
           {targetCharacter && !targetCharacter.description && !loading && (
             <div className="text-center py-8 sm:py-12 flex justify-center px-2">
               <div className="bg-yellow-50 border border-yellow-300 rounded-xl p-6 sm:p-8 shadow-lg max-w-md mx-2">
@@ -201,9 +178,8 @@ export default function DescriptionMode() {
         </div>
       </div>
 
-      {/* Modal de vitória */}
       {showVictoryModal && (
-        <VictoryModal 
+        <VictoryModal
           onClose={() => setShowVictoryModal(false)}
           guessesCount={guesses.length}
         />
