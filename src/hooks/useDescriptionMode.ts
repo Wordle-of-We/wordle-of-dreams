@@ -29,13 +29,12 @@ export interface GuessResult {
 }
 
 export function useDescriptionMode() {
-  const MODE_ID = 2;
+  const MODE_ID = 2
 
   const [playId, setPlayId] = useState<number | null>(null)
   const [guesses, setGuesses] = useState<GuessResult[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-
   const [hasWon, setHasWon] = useState(false)
   const [targetCharacter, setTargetCharacter] = useState<Character | null>(null)
   const [showVictoryModal, setShowVictoryModal] = useState(false)
@@ -43,31 +42,32 @@ export function useDescriptionMode() {
   useEffect(() => {
     const init = async () => {
       try {
-        // Inicia partida
-        const startRes = await api.post('/plays/start', { modeConfigId: MODE_ID })
-        const { playId: id, character, completed } = startRes.data
-        setPlayId(id)
-        setTargetCharacter({
-          id: character.id,
-          name: character.name,
-          description: character.description,
-          imageUrl1: character.imageUrl1,
-        })
+        // 1. Verifica progresso do dia (se já jogou)
+        const progress = await getDailyProgress(MODE_ID)
 
-        // Carrega progresso
-        const prog = await getDailyProgress(MODE_ID)
-        if (prog && prog.alreadyPlayed) {
-          setGuesses(prog.attempts)
-          setHasWon(prog.completed)
-          if (prog.completed) setShowVictoryModal(true)
+        if (progress?.alreadyPlayed) {
+          setPlayId(progress.playId)
+          setGuesses(progress.attempts)
+          setTargetCharacter(progress.character)
+          setHasWon(progress.completed)
+          if (progress.completed) setShowVictoryModal(true)
+          return
         }
-      } catch (e) {
-        console.error('useDescriptionMode error', e)
-        setError('Não foi possível iniciar o jogo')
+
+        // 2. Inicia uma nova partida
+        const startRes = await api.post('/plays/start', { modeConfigId: MODE_ID })
+        const data = startRes.data
+
+        setPlayId(data.playId)
+        setTargetCharacter(data.character)
+      } catch (e: any) {
+        console.error('useDescriptionMode error:', e)
+        setError('Erro ao iniciar o modo descrição.')
       } finally {
         setLoading(false)
       }
     }
+
     init()
   }, [])
 

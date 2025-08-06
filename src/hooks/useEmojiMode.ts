@@ -23,13 +23,12 @@ export interface GuessResult {
 }
 
 export function useEmojiMode() {
-  const MODE_ID = 2 // ou 3, conforme seu ambiente
+  const MODE_ID = 3 // ID correto do modo Emoji
 
   const [playId, setPlayId] = useState<number | null>(null)
   const [guesses, setGuesses] = useState<GuessResult[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-
   const [hasWon, setHasWon] = useState(false)
   const [targetCharacter, setTargetCharacter] = useState<Character | null>(null)
   const [showVictoryModal, setShowVictoryModal] = useState(false)
@@ -38,47 +37,38 @@ export function useEmojiMode() {
   useEffect(() => {
     async function init() {
       try {
-        // 1) Buscar seleção do dia
-        const selRes = await api.get('/daily-selection/latest')
-        const sel = selRes.data.find((s: any) => s.modeConfigId === MODE_ID)
+        const response = await api.get(`/daily-selection/${MODE_ID}`)
+        const character: Character = response.data?.character
 
-        if (!sel || !sel.character) {
-          throw new Error('Nenhuma seleção encontrada para este modo hoje')
+        if (!character || !character.emojis || character.emojis.length === 0) {
+          throw new Error('O personagem do dia não foi encontrado ou não possui emojis.')
         }
 
-        const char = sel.character as Character
+        setTargetCharacter(character)
 
-        // Verifica se o personagem tem emojis
-        if (!Array.isArray(char.emojis) || char.emojis.length === 0) {
-          throw new Error('Personagem não possui emojis válidos')
-        }
-
-        setTargetCharacter(char)
-
-        // 2) Inicia (ou retoma) a partida
         const startRes = await api.post('/plays/start', { modeConfigId: MODE_ID })
         setPlayId(startRes.data.playId)
 
-        // 3) Revela o primeiro emoji
-        setRevealedEmojis(char.emojis.slice(0, 1))
+        const progress = await getDailyProgress(MODE_ID)
 
-        // 4) Verifica progresso
-        const prog = await getDailyProgress(MODE_ID)
-        if (prog?.alreadyPlayed) {
-          setGuesses(prog.attempts)
-          setHasWon(prog.completed)
+        if (progress?.alreadyPlayed) {
+          setGuesses(progress.attempts || [])
+          setHasWon(progress.completed)
 
-          if (prog.completed) {
-            setRevealedEmojis(char.emojis)
+          if (progress.completed) {
+            setRevealedEmojis(character.emojis)
             setShowVictoryModal(true)
           } else {
-            const n = Math.min(prog.attempts.length + 1, char.emojis.length)
-            setRevealedEmojis(char.emojis.slice(0, n))
+            const count = Math.min((progress.attempts.length || 0) + 1, character.emojis.length)
+            setRevealedEmojis(character.emojis.slice(0, count))
           }
+        } else {
+          // Primeira vez jogando hoje
+          setRevealedEmojis(character.emojis.slice(0, 1))
         }
-      } catch (e: any) {
-        console.error('useEmojiMode init error', e)
-        setError('Erro ao iniciar modo Emoji')
+      } catch (err: any) {
+        console.error('[useEmojiMode] Erro ao iniciar modo:', err)
+        setError(err.message || 'Erro ao carregar modo Emoji.')
       } finally {
         setLoading(false)
       }
@@ -89,24 +79,24 @@ export function useEmojiMode() {
 
   const submitGuess = async (guess: string) => {
     if (!playId || hasWon) return
+
     try {
       const res = await api.post<GuessResult>(`/plays/${playId}/guess`, { guess })
       const attempt = res.data
-
       setGuesses(prev => [...prev, attempt])
 
-      const ems = targetCharacter?.emojis ?? []
+      const emojis = targetCharacter?.emojis ?? []
+
       if (attempt.isCorrect) {
         setHasWon(true)
-        setRevealedEmojis(ems)
+        setRevealedEmojis(emojis)
         setShowVictoryModal(true)
       } else {
-        const nextCount = Math.min(attempt.attemptNumber + 1, ems.length)
-        setRevealedEmojis(ems.slice(0, nextCount))
+        const nextCount = Math.min(revealedEmojis.length + 1, emojis.length)
+        setRevealedEmojis(emojis.slice(0, nextCount))
       }
-    } catch (e: any) {
-      console.error('useEmojiMode submitGuess error', e.response?.data || e.message)
-      // Pode adicionar feedback visual aqui, se desejar
+    } catch (err: any) {
+      console.error('[useEmojiMode] Erro ao enviar palpite:', err.response?.data || err.message)
     }
   }
 

@@ -1,96 +1,97 @@
-'use client';
+'use client'
 
-import { useEffect, useState } from 'react';
-import api from '@/lib/api';
-import { getDailyProgress } from '@/services/playService';
+import { useEffect, useState } from 'react'
+import api from '@/lib/api'
+import { getDailyProgress } from '@/services/playService'
 
 type Character = {
-  id: number;
-  name: string;
-  imageUrl?: string;
-};
+  id: number
+  name: string
+  imageUrl1?: string
+}
 
 interface Comparison<T> {
-  guessed: T;
-  target: T;
+  guessed: T
+  target: T
 }
 
 export interface GuessResult {
-  character: any;
-  guess: string;
-  isCorrect: boolean;
-  guessedImageUrl1: string;
+  character: any
+  guess: string
+  isCorrect: boolean
+  guessedImageUrl1: string
   comparison: {
-    [key: string]: Comparison<any>;
-  };
-  triedAt: string;
+    [key: string]: Comparison<any>
+  }
+  triedAt: string
 }
 
 export function useClassicMode() {
-  const [playId, setPlayId] = useState<number | null>(null);
-  const [guesses, setGuesses] = useState<GuessResult[]>([]);
-  const [characters, setCharacters] = useState<Character[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const MODE_ID = 1
 
-  const [hasWon, setHasWon] = useState<boolean>(false);
-  const [targetCharacter, setTargetCharacter] = useState<Character | null>(null);
-  const [showVictoryModal, setShowVictoryModal] = useState<boolean>(false);
+  const [playId, setPlayId] = useState<number | null>(null)
+  const [guesses, setGuesses] = useState<GuessResult[]>([])
+  const [characters, setCharacters] = useState<Character[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  const [hasWon, setHasWon] = useState<boolean>(false)
+  const [targetCharacter, setTargetCharacter] = useState<Character | null>(null)
+  const [showVictoryModal, setShowVictoryModal] = useState<boolean>(false)
 
   useEffect(() => {
-    const start = async () => {
+    const init = async () => {
       try {
-        const res = await api.post("/plays/start", { modeConfigId: 1 });
-        const id = res.data.playId;
-        setPlayId(id);
+        // Verifica se já jogou
+        const progress = await getDailyProgress(MODE_ID)
 
-        // Carrega progresso
-        const progress = await getDailyProgress(1);
-        console.log("[useClassicMode] progresso do dia:", progress);
-
-        setGuesses(progress.attempts ?? []);
-        setHasWon(progress.completed ?? false);
-        setTargetCharacter(progress.target ?? null);
-        if (progress.completed) {
-          setHasWon(true);
-          setShowVictoryModal(true);
+        if (progress?.alreadyPlayed) {
+          setPlayId(progress.playId)
+          setGuesses(progress.attempts ?? [])
+          setHasWon(progress.completed ?? false)
+          setTargetCharacter(progress.character)
+          if (progress.completed) {
+            setShowVictoryModal(true)
+          }
+          return
         }
-      } catch (err) {
-        console.error("Erro ao iniciar partida:", err);
-        setError("Erro ao iniciar partida");
-      } finally {
-        setLoading(false);
-      }
-    };
 
-    start();
-  }, []);
+        // Inicia nova partida
+        const startRes = await api.post('/plays/start', { modeConfigId: MODE_ID })
+        const data = startRes.data
+        setPlayId(data.playId)
+        setTargetCharacter(data.character)
+      } catch (err: any) {
+        console.error('[useClassicMode] Erro ao iniciar partida:', err.response?.data || err.message)
+        setError('Erro ao iniciar partida.')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    init()
+  }, [])
 
   const submitGuess = async (name: string) => {
-    if (!playId) {
-      console.warn('[useClassicMode] playId não disponível.');
-      return;
+    if (!playId || hasWon) {
+      console.warn('[useClassicMode] Partida encerrada ou não iniciada.')
+      return
     }
 
-    const payload = { guess: name };
     try {
-      const res = await api.post(`/plays/${playId}/guess`, payload);
-      console.log('[useClassicMode] novo palpite:', res.data);
+      const res = await api.post(`/plays/${playId}/guess`, { guess: name })
+      const result: GuessResult = res.data
 
-      setGuesses((prev) => [...prev, res.data]);
+      setGuesses(prev => [...prev, result])
 
-      if (res.data.isCorrect) {
-        setHasWon(true);
-        setShowVictoryModal(true);
-        if (!targetCharacter) {
-          const progress = await getDailyProgress(1);
-          setTargetCharacter(progress.target ?? null);
-        }
+      if (result.isCorrect) {
+        setHasWon(true)
+        setShowVictoryModal(true)
       }
     } catch (err: any) {
-      console.error('[useClassicMode] erro ao enviar palpite:', err.response?.data || err.message);
+      console.error('[useClassicMode] Erro ao enviar palpite:', err.response?.data || err.message)
     }
-  };
+  }
 
   return {
     playId,
@@ -103,5 +104,5 @@ export function useClassicMode() {
     showVictoryModal,
     setShowVictoryModal,
     submitGuess,
-  };
+  }
 }
