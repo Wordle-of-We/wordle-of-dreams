@@ -2,14 +2,13 @@
 
 import React, { useState } from 'react';
 import { Gamepad2 } from 'lucide-react';
-import { useAuth } from '../../contexts/AuthContext';
-import { useToast } from '../../hooks/useToast';
+import { authService } from '@/services/auth';
+import { useToast } from '@/hooks/useToast';
 import { useRouter } from 'next/navigation';
 
-export default function Page() {
+export default function LoginPage() {
   const [credentials, setCredentials] = useState({ email: '', password: '' });
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
   const { showToast } = useToast();
   const router = useRouter();
 
@@ -18,10 +17,11 @@ export default function Page() {
     setLoading(true);
 
     try {
-      await login(credentials.email, credentials.password);
+      await authService.login(credentials.email, credentials.password);
       router.push('/admin/dashboard');
-    } catch (error: any) {
-      showToast('error', error.response?.data?.message || 'Erro ao fazer login');
+    } catch (err: any) {
+      const msg = err.response?.data?.message || 'Erro ao fazer login';
+      showToast('error', msg);
     } finally {
       setLoading(false);
     }

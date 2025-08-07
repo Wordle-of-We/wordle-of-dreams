@@ -1,14 +1,21 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
+  eslint: { ignoreDuringBuilds: true },
   images: {
+    domains: ['res.cloudinary.com'],
+
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: '**',
+        hostname: 'example.com',
+        port: '',
         pathname: '/images/**',
+      },
+      {
+        protocol: 'https',
+        hostname: '**.cloudinary.com',
+        port: '',
+        pathname: '/**',
       },
     ],
   },
@@ -17,9 +24,9 @@ const nextConfig = {
       test: /\.svg$/i,
       issuer: /\.[jt]sx?$/,
       use: ['@svgr/webpack'],
-    })
-    return config
+    });
+    return config;
   },
-}
+};
 
-module.exports = nextConfig
+module.exports = nextConfig;

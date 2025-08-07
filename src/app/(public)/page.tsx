@@ -30,7 +30,7 @@ export default function HomePage() {
         </div>
 
         {/* Modos de jogo */}
-        <div className="relative z-10 flex flex-col items-center w-full max-w-md mt-6 mx-auto gap-4">
+        <div className="relative z-10 flex flex-col items-center w-full max-w-md mt-6 mx-auto gap-4 mb-6">
           <ModoItem
             title="Clássico"
             description="O jogo tradicional de adivinhação de personagens DreamWorks com dicas visuais"
@@ -49,12 +49,12 @@ export default function HomePage() {
             icon={<FileText className="text-yellow-500 w-8 h-8" />}
             href="/descriptionMode"
           />
-          <ModoItem
+          {/* <ModoItem
             title="Imagem"
             description="Adivinhe o personagem com base em sua imagem desfocada"
             icon={<ImageIcon className="text-blue-500 w-8 h-8" />}
             href="/game?modo=imagem"
-          />
+          /> */}
         </div>
       </div>
     </div>
