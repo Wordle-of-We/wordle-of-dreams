@@ -2,11 +2,11 @@
 'use client'
 
 import { useEffect } from 'react'
-import GuessInput from '@/app/components/GuessInput'
-import VictoryModal from '@/app/components/VictoryModal'
-import StickerBackground from '@/app/components/StickerBackground'
-import EmojiDisplay from '@/app/components/EmojiDisplay'
-import GuessList from '@/app/components/GuessList'
+import GuessInput from '@/components/GuessInput'
+import VictoryModal from '@/components/VictoryModal'
+import StickerBackground from '@/components/StickerBackground'
+import EmojiDisplay from '@/components/EmojiDisplay'
+import GuessList from '@/components/GuessList'
 import { useEmojiMode } from '@/hooks/useEmojiMode'
 
 export default function EmojiModePage() {

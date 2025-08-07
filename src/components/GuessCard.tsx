@@ -17,10 +17,8 @@ interface Comparison<T> {
 interface GuessResult {
   guess: string;
   isCorrect: boolean;
-  guessedImageUrl1: string;
-  comparison: {
-    [key: string]: Comparison<any>;
-  };
+  guessedImageUrl1: string | null;
+  comparison: { [key: string]: Comparison<any> };
   triedAt: string;
 }
 

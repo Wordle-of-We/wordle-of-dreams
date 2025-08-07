@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
-import { getAllCharacters } from '@/services/characterService';
+import { getAllCharacters } from '@/services/characters';
 import { Search, Send } from 'lucide-react';
 
 interface Character {
@@ -9,7 +9,11 @@ interface Character {
   name: string;
 }
 
-export default function GuessInput({ onSelect }: { onSelect: (name: string) => void }) {
+export default function GuessInput({
+  onSelect,
+}: {
+  onSelect: (name: string) => void;
+}) {
   const [input, setInput] = useState('');
   const [characters, setCharacters] = useState<Character[]>([]);
   const [filtered, setFiltered] = useState<Character[]>([]);
@@ -21,7 +25,10 @@ export default function GuessInput({ onSelect }: { onSelect: (name: string) => v
     const fetchCharacters = async () => {
       try {
         const res = await getAllCharacters();
-        setCharacters(res);
+        setCharacters(res.map((char: any) => ({
+          ...char,
+          id: Number(char.id),
+        })));
       } catch (err) {
         console.error('[GuessInput] Erro ao buscar personagens:', err);
       }
@@ -30,21 +37,22 @@ export default function GuessInput({ onSelect }: { onSelect: (name: string) => v
     fetchCharacters();
   }, []);
 
+  // Filtrar conforme o input
   useEffect(() => {
     const query = input.trim().toLowerCase();
-    if (query.length === 0) {
+    if (!query) {
       setFiltered([]);
       return;
     }
-
-    const results = characters.filter((char) =>
-      char.name.toLowerCase().includes(query)
+    setFiltered(
+      characters.filter((char) =>
+        char.name.toLowerCase().includes(query)
+      )
     );
-    setFiltered(results);
     setShowDropdown(true);
   }, [input, characters]);
 
-  // Fechar dropdown ao clicar fora
+  // Fecha dropdown ao clicar fora
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
       if (!ref.current?.contains(e.target as Node)) {
@@ -56,10 +64,7 @@ export default function GuessInput({ onSelect }: { onSelect: (name: string) => v
   }, []);
 
   const handleSubmit = () => {
-    console.log('[GuessInput] Enviando palpite:', input);
-    if (!input.trim()) {
-      return;
-    }
+    if (!input.trim()) return;
     onSelect(input.trim());
     setInput('');
     setShowDropdown(false);
@@ -70,14 +75,9 @@ export default function GuessInput({ onSelect }: { onSelect: (name: string) => v
       <div className="flex items-center border-2 border-orange-500 rounded overflow-hidden shadow">
         <input
           value={input}
-          onChange={(e) => {
-            console.log('[GuessInput] Digitando:', e.target.value);
-            setInput(e.target.value);
-          }}
+          onChange={(e) => setInput(e.target.value)}
           placeholder="Digite o nome do personagem..."
-          onFocus={() => {
-            if (input) setShowDropdown(true);
-          }}
+          onFocus={() => input && setShowDropdown(true)}
           onKeyDown={(e) => {
             if (e.key === 'Enter') {
               e.preventDefault();
@@ -104,7 +104,6 @@ export default function GuessInput({ onSelect }: { onSelect: (name: string) => v
             <li
               key={char.id}
               onClick={() => {
-                console.log('[GuessInput] Clicou em:', char.name);
                 onSelect(char.name);
                 setInput('');
                 setShowDropdown(false);

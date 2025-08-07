@@ -1,8 +1,8 @@
 'use client';
 
 import { Play, Smile, FileText, Image as ImageIcon } from 'lucide-react';
-import ModoItem from './components/ModoItem';
-import StickerBackground from './components/StickerBackground';
+import ModoItem from '../../components/ModoItem';
+import StickerBackground from '../../components/StickerBackground';
 // import Logo from '/logo_dreams.svg';
 
 export default function HomePage() {
@@ -15,9 +15,9 @@ export default function HomePage() {
           <h1 className="text-4xl sm:text-5xl font-extrabold font-poppins text-gray-800">
             <div className="flex items-center justify-center -mt-10">
               <img
-              src="/logo_dreams.svg"
-              alt="Logo Wordle of Dreams"
-              className="w-52 h-52"
+                src="/logo_dreams.svg"
+                alt="Logo Wordle of Dreams"
+                className="w-52 h-52"
               />
             </div>
             <span className="block text-orange-500 font-extrabold font-pacifico text-xl sm:text-2xl mt-2">

@@ -1,32 +1,13 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import api from '@/lib/api'
-import { getDailyProgress } from '@/services/playService'
-
-type Character = {
-  id: number
-  name: string
-  description?: string
-  imageUrl1?: string
-}
-
-interface Comparison<T> {
-  guessed: T
-  target: T
-}
-
-export interface GuessResult {
-  attemptNumber: number
-  guess: string
-  isCorrect: boolean
-  playCompleted: boolean
-  guessedImageUrl1: string
-  comparison: {
-    [key: string]: Comparison<any>
-  }
-  triedAt: string
-}
+import type {
+  GuessResult,
+  StartPlayResponse,
+  DailyProgressResponse,
+} from '@/services/plays'
+import { getDailyProgress, startPlay, makeGuess } from '@/services/plays'
+import { ProgressCharacter } from '@/interfaces/Play'
 
 export function useDescriptionMode() {
   const MODE_ID = 2
@@ -36,33 +17,33 @@ export function useDescriptionMode() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [hasWon, setHasWon] = useState(false)
-  const [targetCharacter, setTargetCharacter] = useState<Character | null>(null)
+  const [targetCharacter, setTargetCharacter] = useState<ProgressCharacter | null>(null)
   const [showVictoryModal, setShowVictoryModal] = useState(false)
 
   useEffect(() => {
-    const init = async () => {
+    async function init() {
       try {
-        // 1. Verifica progresso do dia (se já jogou)
-        const progress = await getDailyProgress(MODE_ID)
+        // 1) Verifica progresso diário
+        const progress: DailyProgressResponse = await getDailyProgress(MODE_ID)
 
-        if (progress?.alreadyPlayed) {
+        if (progress.alreadyPlayed) {
           setPlayId(progress.playId)
           setGuesses(progress.attempts)
           setTargetCharacter(progress.character)
           setHasWon(progress.completed)
-          if (progress.completed) setShowVictoryModal(true)
+          if (progress.completed) {
+            setShowVictoryModal(true)
+          }
           return
         }
 
-        // 2. Inicia uma nova partida
-        const startRes = await api.post('/plays/start', { modeConfigId: MODE_ID })
-        const data = startRes.data
-
-        setPlayId(data.playId)
-        setTargetCharacter(data.character)
+        // 2) Se não jogou hoje, inicia nova partida
+        const startRes: StartPlayResponse = await startPlay({ modeConfigId: MODE_ID })
+        setPlayId(startRes.playId)
+        setTargetCharacter(startRes.character)
       } catch (e: any) {
-        console.error('useDescriptionMode error:', e)
-        setError('Erro ao iniciar o modo descrição.')
+        console.error('[useDescriptionMode] init error:', e)
+        setError('Erro ao iniciar o modo Descrição.')
       } finally {
         setLoading(false)
       }
@@ -73,16 +54,17 @@ export function useDescriptionMode() {
 
   const submitGuess = async (guess: string) => {
     if (!playId || hasWon) return
+
     try {
-      const res = await api.post(`/plays/${playId}/guess`, { guess })
-      const result: GuessResult = res.data
-      setGuesses(prev => [...prev, result])
+      const result: GuessResult = await makeGuess(playId, guess)
+      setGuesses((prev) => [...prev, result])
+
       if (result.isCorrect) {
         setHasWon(true)
         setShowVictoryModal(true)
       }
     } catch (e: any) {
-      console.error('submitGuess error', e.response?.data || e.message)
+      console.error('[useDescriptionMode] submitGuess error:', e.response?.data || e.message)
     }
   }
 

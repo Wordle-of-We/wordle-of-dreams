@@ -1,10 +1,10 @@
 'use client';
 
-import GuessInput from '../components/GuessInput';
-import VictoryModal from '../components/VictoryModal';
-import StickerBackground from '../components/StickerBackground';
-import DescriptionDisplay from '../components/DescriptionDisplay';
-import GuessList from '../components/GuessList';
+import GuessInput from '../../../components/GuessInput';
+import VictoryModal from '../../../components/VictoryModal';
+import StickerBackground from '../../../components/StickerBackground';
+import DescriptionDisplay from '../../../components/DescriptionDisplay';
+import GuessList from '../../../components/GuessList';
 import { useEffect } from 'react';
 import { useDescriptionMode } from '@/hooks/useDescriptionMode';
 
@@ -58,8 +58,8 @@ export default function DescriptionMode() {
         <div className="flex items-center justify-center min-h-screen px-4">
           <div className="text-center max-w-md mx-auto">
             <p className="text-base sm:text-lg text-red-600 mb-4">Erro: {error}</p>
-            <button 
-              onClick={() => window.location.reload()} 
+            <button
+              onClick={() => window.location.reload()}
               className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm sm:text-base"
             >
               Tentar Novamente
@@ -166,8 +166,8 @@ export default function DescriptionMode() {
                 <p className="text-sm sm:text-base text-yellow-700">
                   Este personagem não possui uma descrição disponível. Tente novamente mais tarde!
                 </p>
-                <button 
-                  onClick={() => window.location.reload()} 
+                <button
+                  onClick={() => window.location.reload()}
                   className="mt-4 px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors text-sm sm:text-base"
                 >
                   Recarregar

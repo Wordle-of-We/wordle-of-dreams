@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
-import { getAllCharacters } from '@/services/characterService';
+import { getAllCharacters } from '@/services/characters';
 
 interface Character {
   id: number;
@@ -41,7 +41,7 @@ export default function GuessList({ guesses }: GuessListProps) {
 
   // Função para encontrar o personagem pelo nome do palpite
   const findCharacterImage = (guessName: string) => {
-    const character = characters.find(char => 
+    const character = characters.find(char =>
       char.name.toLowerCase() === guessName.toLowerCase()
     );
     return character?.imageUrl1 || '/images/default-character.png';
@@ -56,14 +56,14 @@ export default function GuessList({ guesses }: GuessListProps) {
       <h3 className="text-base sm:text-lg font-semibold text-gray-700 mb-3 sm:mb-4">
         Seus palpites ({guesses.length}):
       </h3>
-      
+
       {guesses.slice().reverse().map((guess, index) => (
         <div
           key={index}
           className={`
             w-full px-3 sm:px-4 py-3 rounded-lg shadow-md border-2 text-center font-medium
-            ${guess.isCorrect 
-              ? 'bg-green-100 border-green-300 text-green-800' 
+            ${guess.isCorrect
+              ? 'bg-green-100 border-green-300 text-green-800'
               : 'bg-red-100 border-red-300 text-red-800'
             }
           `}
@@ -79,12 +79,12 @@ export default function GuessList({ guesses }: GuessListProps) {
                 className="w-full h-full object-cover"
               />
             </div>
-            
+
             {/* Ícone de acerto/erro */}
             <span className="text-base sm:text-lg">
               {guess.isCorrect ? '✅' : '❌'}
             </span>
-            
+
             {/* Nome do personagem */}
             <span className="text-sm sm:text-base md:text-lg font-semibold">
               {guess.guess}

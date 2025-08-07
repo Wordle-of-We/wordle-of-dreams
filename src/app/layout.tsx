@@ -1,20 +1,17 @@
-import Navbar from './components/Navbar';
-import './globals.css';
-import { ReactNode } from 'react';
+import './globals.css'
+import type { Metadata } from 'next'
 
+export const metadata: Metadata = {
+  title: 'Meu App',
+  description: 'Descrição global',
+}
 
-export const metadata = {
-  title: 'Wordle of Dreams',
-  description: 'Adivinhe personagens incríveis com base em suas características!',
-};
-
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pt-BR">
-      <body className="text-gray-900 min-h-screen">
-        <Navbar />
-        <main className="pt-25 px-5 w-max mx-auto">{children}</main>
+      <body className="min-h-screen">
+        {children}
       </body>
     </html>
-  );
+  )
 }

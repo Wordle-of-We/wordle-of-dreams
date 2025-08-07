@@ -1,13 +1,12 @@
 'use client';
 
 import { useClassicMode } from '@/hooks/useClassicMode';
-import GuessCard from '../components/GuessCard';
-import GuessInput from '../components/GuessInput';
-import VictoryModal from '../components/VictoryModal';
-import StickerBackground from '../components/StickerBackground';
-import { getAllCharacters } from '@/services/characterService';
+import GuessCard from '../../../components/GuessCard';
+import GuessInput from '../../../components/GuessInput';
+import VictoryModal from '../../../components/VictoryModal';
+import StickerBackground from '../../../components/StickerBackground';
 import { useEffect, useState } from 'react';
-import Image from 'next/image';
+import { getAllCharacters } from '@/services/characters';
 
 interface Character {
   id: number;
@@ -33,7 +32,10 @@ export default function ClassicMode() {
     const fetchCharacters = async () => {
       try {
         const res = await getAllCharacters();
-        setCharacters(res);
+        setCharacters(res.map((char: any) => ({
+          ...char,
+          id: Number(char.id),
+        })));
       } catch (err) {
         console.error('Erro ao buscar personagens:', err);
       }
@@ -67,8 +69,8 @@ export default function ClassicMode() {
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-center">
             <p className="text-lg text-red-600">Erro: {error}</p>
-            <button 
-              onClick={() => window.location.reload()} 
+            <button
+              onClick={() => window.location.reload()}
               className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
             >
               Tentar Novamente
@@ -88,66 +90,66 @@ export default function ClassicMode() {
         <div className="max-w-4xl mx-auto">
           {/* Título */}
           <div className="text-center mb-8">
-        <h1 className="text-4xl font-bold text-gray-800 mb-2">
-          Modo Clássico
-        </h1>
-        <p className="text-gray-600">
-          Descubra o personagem misterioso de hoje!
-        </p>
+            <h1 className="text-4xl font-bold text-gray-800 mb-2">
+              Modo Clássico
+            </h1>
+            <p className="text-gray-600">
+              Descubra o personagem misterioso de hoje!
+            </p>
           </div>
 
           {/* Input de palpite */}
           {!hasWon && (
-        <div className="mb-8 flex justify-center">
-          <GuessInput onSelect={handleGuess} />
-        </div>
+            <div className="mb-8 flex justify-center">
+              <GuessInput onSelect={handleGuess} />
+            </div>
           )}
 
           {/* Mensagem de vitória (sem modal) */}
           {hasWon && !showVictoryModal && (
-        <div className="text-center py-8">
-          <div className="bg-green-100 border border-green-300 rounded-xl p-6 shadow-lg">
-            <h3 className="text-2xl font-bold text-green-800 mb-2">
-          🎉 Parabéns!
-            </h3>
-            <p className="text-green-700">
-          Você descobriu o personagem em {guesses.length} tentativa{guesses.length !== 1 ? 's' : ''}!
-            </p>
-          </div>
-        </div>
+            <div className="text-center py-8">
+              <div className="bg-green-100 border border-green-300 rounded-xl p-6 shadow-lg">
+                <h3 className="text-2xl font-bold text-green-800 mb-2">
+                  🎉 Parabéns!
+                </h3>
+                <p className="text-green-700">
+                  Você descobriu o personagem em {guesses.length} tentativa{guesses.length !== 1 ? 's' : ''}!
+                </p>
+              </div>
+            </div>
           )}
 
           {/* Lista de palpites */}
           <div className="space-y-4 flex flex-col items-center">
-        {guesses.slice().reverse().map((guess, index) => (
-          <GuessCard 
-            key={guesses.length - 1 - index}
-            guess={guess}
-            characters={characters}
-            index={guesses.length - 1 - index}
-          />
-        ))}
+            {guesses.slice().reverse().map((guess, index) => (
+              <GuessCard
+                key={guesses.length - 1 - index}
+                guess={guess}
+                characters={characters}
+                index={guesses.length - 1 - index}
+              />
+            ))}
           </div>
 
           {/* Mensagem quando não há palpites */}
           {guesses.length === 0 && !hasWon && (
-        <div className="text-center py-12 flex justify-center">
-          <div className="bg-white/70 backdrop-blur-sm rounded-xl p-8 shadow-lg border border-white/20">
-            <h3 className="text-xl font-semibold text-gray-700 mb-2">
-          Comece a jogar!
-            </h3>
-            <p className="text-gray-600">
-          Digite o nome de um personagem da DreamWorks para fazer seu primeiro palpite.
-            </p>
-          </div>
-        </div>
+            <div className="text-center py-12 flex justify-center">
+              <div className="bg-white/70 backdrop-blur-sm rounded-xl p-8 shadow-lg border border-white/20">
+                <h3 className="text-xl font-semibold text-gray-700 mb-2">
+                  Comece a jogar!
+                </h3>
+                <p className="text-gray-600">
+                  Digite o nome de um personagem da DreamWorks para fazer seu primeiro palpite.
+                </p>
+              </div>
+            </div>
           )}
         </div>
       </div>
 
       {/* Modal de vitória */}
       {showVictoryModal && (
-        <VictoryModal 
+        <VictoryModal
           onClose={() => setShowVictoryModal(false)}
           guessesCount={guesses.length}
         />
