@@ -1,6 +1,5 @@
-// src/components/StatsDailyTable.tsx
 import React from 'react';
-import type { DailyOverview } from '../interfaces';
+import type { DailyOverview } from '../interfaces/Stats';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 

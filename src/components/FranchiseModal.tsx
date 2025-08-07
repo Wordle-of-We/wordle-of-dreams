@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Plus } from 'lucide-react';
 import { BaseModal, ModalSize } from './BaseModal';
-import type { Franchise } from '../interfaces';
+import type { Franchise } from '../interfaces/Franchise';
 
 interface FranchiseModalProps {
   isOpen: boolean;

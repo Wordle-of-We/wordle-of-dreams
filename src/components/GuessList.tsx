@@ -31,7 +31,12 @@ export default function GuessList({ guesses }: GuessListProps) {
     const fetchCharacters = async () => {
       try {
         const allCharacters = await getAllCharacters();
-        setCharacters(allCharacters);
+        setCharacters(
+          allCharacters.map((char: any) => ({
+            ...char,
+            id: Number(char.id),
+          }))
+        );
       } catch (error) {
         console.error('Erro ao buscar personagens:', error);
       }

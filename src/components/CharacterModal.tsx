@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { Plus } from 'lucide-react'
 import { BaseModal, ModalSize } from './BaseModal'
-import type { Franchise, Character, CreateCharacterDto } from '../interfaces'
+import type { Franchise } from '../interfaces/Franchise'
+import type { Character, CreateCharacterDto, UpdateCharacterDto } from '../interfaces/Character'
 
 export interface CharacterModalData
   extends Omit<CreateCharacterDto, 'isProtagonist' | 'isAntagonist'> {
