@@ -1,7 +1,7 @@
-'use client'
+'use client';
 
-import React, { useState, useEffect } from 'react'
-import { Line, Bar, Pie } from 'react-chartjs-2'
+import React, { useState, useEffect, useMemo } from 'react';
+import { Line, Bar, Pie } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -13,10 +13,10 @@ import {
   Title,
   Tooltip,
   Legend,
-} from 'chart.js'
-import { Users, TowerControl as GameController2, Target } from 'lucide-react'
-import api from '../../../lib/api'
-import { KPI } from '../../../interfaces/Stats'
+} from 'chart.js';
+import { Users, Gamepad2, Target } from 'lucide-react';
+import { apiAdmin } from '@/lib/api';
+import { KPI } from '@/interfaces/Stats';
 
 ChartJS.register(
   CategoryScale,
@@ -28,130 +28,123 @@ ChartJS.register(
   Title,
   Tooltip,
   Legend
-)
+);
 
 export default function Dashboard() {
-  const [kpis, setKpis] = useState<KPI | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [kpis, setKpis] = useState<KPI | null>(null);
+  const [loading, setLoading] = useState(true);
 
   const loadKPIs = async () => {
-    setLoading(true)
+    setLoading(true);
     try {
-      const { data } = await api.get<KPI>('/admin/dashboard/kpis')
-      setKpis(data)
+      const { data } = await apiAdmin.get<KPI>('/admin/dashboard/kpis', {
+        withCredentials: true,
+      });
+      setKpis(data);
     } catch (err) {
-      console.error('Erro ao carregar KPIs:', err)
+      console.error('Erro ao carregar KPIs:', err);
+      setKpis(null);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
-    loadKPIs()
-  }, [])
+    let mounted = true;
+    (async () => {
+      await loadKPIs();
+      if (!mounted) return;
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  // 👇 TODOS os hooks ficam ANTES de qualquer return condicional
+  const chartOptions = useMemo(
+    () => ({
+      responsive: true,
+      plugins: { legend: { position: 'top' as const } },
+      scales: { y: { beginAtZero: true } },
+    }),
+    []
+  );
+
+  const accessData = useMemo(() => {
+    const labels = kpis?.accessData?.labels ?? [];
+    const acc =
+      kpis?.accessData?.datasets?.find((ds) => ds.label === 'Acessos')?.data ?? [];
+    const att =
+      kpis?.accessData?.datasets?.find((ds) => ds.label === 'Tentativas')?.data ?? [];
+    return {
+      labels,
+      datasets: [
+        {
+          label: 'Acessos',
+          data: acc,
+          borderColor: 'rgb(29, 78, 216)',
+          backgroundColor: 'rgba(29, 78, 216, 0.1)',
+          tension: 0.4,
+        },
+        {
+          label: 'Tentativas',
+          data: att,
+          borderColor: 'rgb(4, 120, 87)',
+          backgroundColor: 'rgba(4, 120, 87, 0.1)',
+          tension: 0.4,
+        },
+      ],
+    };
+  }, [kpis]);
+
+  const modeUsageData = useMemo(() => {
+    const labels = kpis?.modeUsageData?.labels ?? [];
+    const data = kpis?.modeUsageData?.datasets?.[0]?.data ?? [];
+    return {
+      labels,
+      datasets: [
+        {
+          data,
+          backgroundColor: [
+            'rgba(29, 78, 216, 0.8)',
+            'rgba(4, 120, 87, 0.8)',
+            'rgba(194, 65, 12, 0.8)',
+            'rgba(126, 34, 206, 0.8)',
+          ],
+          borderWidth: 0,
+        },
+      ],
+    };
+  }, [kpis]);
+
+  const attemptsData = useMemo(() => {
+    const labels = kpis?.attemptsData?.labels ?? [];
+    const ds0 = kpis?.attemptsData?.datasets?.[0]?.data ?? [];
+    const ds1 = kpis?.attemptsData?.datasets?.[1]?.data ?? [];
+    return {
+      labels,
+      datasets: [
+        { label: 'Tentativas', data: ds0, backgroundColor: 'rgba(29, 78, 216, 0.8)' },
+        { label: 'Acertos', data: ds1, backgroundColor: 'rgba(4, 120, 87, 0.8)' },
+      ],
+    };
+  }, [kpis]);
 
   if (loading || !kpis) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-800"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-800" />
       </div>
-    )
+    );
   }
 
-  // cards de resumo
+  // (Sem hooks abaixo daqui) — com kpis garantido
   const kpiCards = [
-    {
-      title: 'Total de Usuários',
-      value: kpis.totalUsers,
-      icon: Users,
-      color: 'text-blue-800 bg-blue-200',
-    },
-    {
-      title: 'Usuários Ativos',
-      value: kpis.activeUsers,
-      icon: Users,
-      color: 'text-green-800 bg-green-200',
-    },
-    {
-      title: 'Partidas Diárias',
-      value: kpis.dailyGames,
-      icon: GameController2,
-      color: 'text-purple-800 bg-purple-200',
-    },
-    {
-      title: 'Total de Tentativas',
-      value: kpis.totalAttempts,
-      icon: Target,
-      color: 'text-orange-800 bg-orange-200',
-    },
-  ]
-
-  // opções comuns dos charts
-  const chartOptions = {
-    responsive: true,
-    plugins: { legend: { position: 'top' as const } },
-    scales: { y: { beginAtZero: true } },
-  }
-
-  // montar os dados do gráfico de acessos vs tentativas
-  const accessData = {
-    labels: kpis.accessData.labels,
-    datasets: [
-      {
-        label: 'Acessos',
-        data:
-          kpis.accessData.datasets.find(ds => ds.label === 'Acessos')
-            ?.data || [],
-        borderColor: 'rgb(29, 78, 216)',
-        backgroundColor: 'rgba(29, 78, 216, 0.1)',
-        tension: 0.4,
-      },
-      {
-        label: 'Tentativas',
-        data:
-          kpis.accessData.datasets.find(
-            ds => ds.label === 'Tentativas'
-          )?.data || [],
-        borderColor: 'rgb(4, 120, 87)',
-        backgroundColor: 'rgba(4, 120, 87, 0.1)',
-        tension: 0.4,
-      },
-    ],
-  }
-
-  // gráfico de uso por modo
-  const modeUsageData = {
-    labels: kpis.modeUsageData.labels,
-    datasets: [
-      {
-        data: kpis.modeUsageData.datasets[0]?.data || [],
-        backgroundColor: [
-          'rgba(29, 78, 216, 0.8)',
-          'rgba(4, 120, 87, 0.8)',
-          'rgba(194, 65, 12, 0.8)',
-          'rgba(126, 34, 206, 0.8)',
-        ],
-        borderWidth: 0,
-      },
-    ],
-  }
-
-  // gráfico de tentativas vs acertos por modo
-  const attemptsData = {
-    labels: kpis.attemptsData.labels,
-    datasets: [
-      {
-        label: 'Tentativas',
-        data: kpis.attemptsData.datasets[0]?.data || [],
-        backgroundColor: 'rgba(29, 78, 216, 0.8)',
-      },
-      {
-        label: 'Acertos',
-        data: kpis.attemptsData.datasets[1]?.data || [],
-        backgroundColor: 'rgba(4, 120, 87, 0.8)',
-      },
-    ],
-  }
+    { title: 'Total de Usuários', value: kpis.totalUsers, icon: Users, color: 'text-blue-800 bg-blue-200' },
+    { title: 'Usuários Ativos', value: kpis.activeUsers, icon: Users, color: 'text-green-800 bg-green-200' },
+    { title: 'Partidas Diárias', value: kpis.dailyGames, icon: Gamepad2, color: 'text-purple-800 bg-purple-200' },
+    { title: 'Total de Tentativas', value: kpis.totalAttempts, icon: Target, color: 'text-orange-800 bg-orange-200' },
+  ];
 
   return (
     <div className="space-y-6 p-4">
@@ -167,7 +160,7 @@ export default function Dashboard() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {kpiCards.map((kpi, idx) => {
-          const Icon = kpi.icon
+          const Icon = kpi.icon;
           return (
             <div key={idx} className="bg-white rounded-lg shadow p-6">
               <div className="flex items-center">
@@ -175,16 +168,14 @@ export default function Dashboard() {
                   <Icon className="w-6 h-6" />
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-700">
-                    {kpi.title}
-                  </p>
+                  <p className="text-sm font-medium text-gray-700">{kpi.title}</p>
                   <p className="text-2xl font-bold text-gray-900">
-                    {kpi.value.toLocaleString()}
+                    {Number(kpi.value ?? 0).toLocaleString()}
                   </p>
                 </div>
               </div>
             </div>
-          )
+          );
         })}
       </div>
 
@@ -216,24 +207,22 @@ export default function Dashboard() {
           Top 5 Personagens por Modo
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {Object.entries(kpis.topCharacters).map(
-            ([mode, chars], idx) => (
-              <div key={idx} className="space-y-2">
-                <h4 className="font-medium text-gray-900">{mode}</h4>
-                {chars.map((tc, i) => (
-                  <div
-                    key={i}
-                    className="flex items-center justify-between text-sm text-gray-700"
-                  >
-                    <span>{tc.character}</span>
-                    <span className="font-medium">{tc.count}</span>
-                  </div>
-                ))}
-              </div>
-            )
-          )}
+          {Object.entries(kpis.topCharacters || {}).map(([mode, chars], idx) => (
+            <div key={idx} className="space-y-2">
+              <h4 className="font-medium text-gray-900">{mode}</h4>
+              {(chars || []).map((tc, i) => (
+                <div
+                  key={i}
+                  className="flex items-center justify-between text-sm text-gray-700"
+                >
+                  <span>{tc.character}</span>
+                  <span className="font-medium">{tc.count}</span>
+                </div>
+              ))}
+            </div>
+          ))}
         </div>
       </div>
     </div>
-  )
+  );
 }

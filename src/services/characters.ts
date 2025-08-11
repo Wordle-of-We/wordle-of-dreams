@@ -1,4 +1,4 @@
-import api from '../lib/api';
+import { apiAdmin, apiUser } from '../lib/api';
 import type {
   Character,
   CreateCharacterDto,
@@ -6,14 +6,14 @@ import type {
 } from '../interfaces/Character';
 
 export async function getAllCharacters(): Promise<Character[]> {
-  const { data } = await api.get<Character[]>('/characters', {
+  const { data } = await apiUser.get<Character[]>('/characters', {
     withCredentials: true,
   });
   return data;
 }
 
 export async function getCharacterById(id: number): Promise<Character> {
-  const { data } = await api.get<Character>(`/characters/${id}`, {
+  const { data } = await apiUser.get<Character>(`/characters/${id}`, {
     withCredentials: true,
   });
   return data;
@@ -24,9 +24,7 @@ export async function createCharacter(
   file?: File
 ): Promise<Character> {
   const formData = new FormData();
-  if (file) {
-    formData.append('file', file);
-  }
+  if (file) formData.append('file', file);
   formData.append('name', data.name);
   formData.append('description', data.description ?? '');
   formData.append('gender', data.gender);
@@ -38,8 +36,9 @@ export async function createCharacter(
   if (data.paper) formData.append('paper', JSON.stringify(data.paper));
   if (data.franchiseIds) formData.append('franchiseIds', JSON.stringify(data.franchiseIds));
   if (data.imageUrl1) formData.append('imageUrl1', data.imageUrl1);
+  if (data.imageUrl2) formData.append('imageUrl2', data.imageUrl2 ?? '');
 
-  const { data: created } = await api.post<Character>('/characters', formData, {
+  const { data: created } = await apiAdmin.post<Character>('/characters', formData, {
     withCredentials: true,
     headers: { 'Content-Type': 'multipart/form-data' },
   });
@@ -52,7 +51,7 @@ export async function updateCharacter(
 ): Promise<Character> {
   const { imageUrl1: _ignore1, imageUrl2: _ignore2, ...rest } = data as any;
 
-  const { data: updated } = await api.patch<Character>(
+  const { data: updated } = await apiAdmin.patch<Character>(
     `/characters/${id}`,
     rest,
     { withCredentials: true }
@@ -69,7 +68,7 @@ export async function updateCharacterImage(
   if (file) formData.append('file', file);
   if (imageUrl1) formData.append('imageUrl1', imageUrl1);
 
-  const { data } = await api.patch<Character>(
+  const { data } = await apiAdmin.patch<Character>(
     `/characters/${id}/image`,
     formData,
     {
@@ -81,7 +80,7 @@ export async function updateCharacterImage(
 }
 
 export async function deleteCharacterImage(id: number): Promise<Character> {
-  const { data } = await api.delete<Character>(`/characters/${id}/image`, {
+  const { data } = await apiAdmin.delete<Character>(`/characters/${id}/image`, {
     withCredentials: true,
   });
   return data;
@@ -96,7 +95,7 @@ export async function updateCharacterImage2(
   if (file) formData.append('file', file);
   if (imageUrl2) formData.append('imageUrl2', imageUrl2);
 
-  const { data } = await api.patch<Character>(
+  const { data } = await apiAdmin.patch<Character>(
     `/characters/${id}/image2`,
     formData,
     {
@@ -108,14 +107,14 @@ export async function updateCharacterImage2(
 }
 
 export async function deleteCharacterImage2(id: number): Promise<Character> {
-  const { data } = await api.delete<Character>(`/characters/${id}/image2`, {
+  const { data } = await apiAdmin.delete<Character>(`/characters/${id}/image2`, {
     withCredentials: true,
   });
   return data;
 }
 
 export async function deleteCharacter(id: number): Promise<Character> {
-  const { data } = await api.delete<Character>(`/characters/${id}`, {
+  const { data } = await apiAdmin.delete<Character>(`/characters/${id}`, {
     withCredentials: true,
   });
   return data;

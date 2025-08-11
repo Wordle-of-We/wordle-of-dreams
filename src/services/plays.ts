@@ -1,4 +1,4 @@
-import api from '../lib/api';
+import { apiUser } from '../lib/api';
 
 import type {
   GuessResult,
@@ -11,10 +11,7 @@ import type {
 export const startPlay = async (
   data: StartPlayDto
 ): Promise<StartPlayResponse> => {
-  const { data: response } = await api.post<StartPlayResponse>(
-    '/plays/start',
-    data
-  );
+  const { data: response } = await apiUser.post<StartPlayResponse>('/plays/start', data);
   return response;
 };
 
@@ -22,36 +19,28 @@ export const makeGuess = async (
   playId: number,
   guess: string
 ): Promise<GuessResult> => {
-  const { data } = await api.post<GuessResult>(`/plays/${playId}/guess`, {
-    guess,
-  });
+  const { data } = await apiUser.post<GuessResult>(`/plays/${playId}/guess`, { guess });
   return data;
 };
 
 export const getAttemptsByPlay = async (
   playId: number
 ): Promise<GuessResult[]> => {
-  const { data } = await api.get<GuessResult[]>(
-    `/plays/${playId}/attempts`
-  );
+  const { data } = await apiUser.get<GuessResult[]>(`/plays/${playId}/attempts`);
   return data;
 };
 
 export const getDailyProgress = async (
   modeConfigId: number
 ): Promise<DailyProgressResponse> => {
-  const { data } = await api.get<DailyProgressResponse>(
-    `/plays/progress/${modeConfigId}`
-  );
+  const { data } = await apiUser.get<DailyProgressResponse>(`/plays/progress/${modeConfigId}`);
   return data;
 };
 
 export const getPlayProgress = async (
   playId: number
 ): Promise<PlayProgressResponse> => {
-  const { data } = await api.get<PlayProgressResponse>(
-    `/plays/${playId}/progress`
-  );
+  const { data } = await apiUser.get<PlayProgressResponse>(`/plays/${playId}/progress`);
   return data;
 };
 

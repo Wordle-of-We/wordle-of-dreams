@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { Gamepad2 } from 'lucide-react';
-import { authService } from '@/services/auth';
+import { authAdmin } from '@/services/authAdmin';
 import { useToast } from '@/hooks/useToast';
 import { useRouter } from 'next/navigation';
 
@@ -17,10 +17,10 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      await authService.login(credentials.email, credentials.password);
+      await authAdmin.login(credentials.email, credentials.password);
       router.push('/admin/dashboard');
     } catch (err: any) {
-      const msg = err.response?.data?.message || 'Erro ao fazer login';
+      const msg = err?.response?.data?.message || 'Erro ao fazer login';
       showToast('error', msg);
     } finally {
       setLoading(false);
@@ -53,6 +53,7 @@ export default function LoginPage() {
                 className="w-full px-3 py-2 border text-gray-600 border-gray-400 placeholder-gray-400 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 placeholder="admin@dreamworks.com"
                 required
+                autoComplete="email"
               />
             </div>
 
@@ -68,6 +69,7 @@ export default function LoginPage() {
                 className="w-full px-3 py-2 border text-gray-600 border-gray-400 placeholder-gray-400 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 placeholder="••••••••"
                 required
+                autoComplete="current-password"
               />
             </div>
 

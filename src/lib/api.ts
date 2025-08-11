@@ -1,84 +1,108 @@
-import axios, { AxiosError } from 'axios';
+import axios, { AxiosError, AxiosInstance, AxiosRequestConfig } from 'axios';
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, '') || 'http://localhost:3000';
 
-const api = axios.create({ baseURL: API_BASE_URL });
-
-api.interceptors.request.use((config) => {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('adminToken') : null;
-  if (token && config.headers) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
-
-let isRefreshing = false;
-let pendingQueue: Array<[(token: string) => void, (err: any) => void]> = [];
-
-function processQueue(error: any, token: string | null = null) {
-  pendingQueue.forEach(([resolve, reject]) => {
-    if (token) resolve(token);
-    else reject(error);
-  });
-  pendingQueue = [];
+interface RetriableConfig extends AxiosRequestConfig {
+  _retry?: boolean;
 }
 
-api.interceptors.response.use(
-  (res) => res,
-  async (error: AxiosError) => {
-    const original = error.config as any;
-    if (error.response?.status === 401 && !original?._retry) {
-      const refreshToken = localStorage.getItem('adminRefreshToken');
-      const email = localStorage.getItem('adminEmail');
+type Prefix = 'admin' | 'user';
 
-      if (!refreshToken || !email) {
-        localStorage.removeItem('adminToken');
-        return Promise.reject(error);
-      }
+function createApi(prefix: Prefix): AxiosInstance {
+  const api = axios.create({ baseURL: API_BASE_URL });
 
-      if (isRefreshing) {
-        return new Promise((resolve, reject) => {
-          pendingQueue.push([
-            (token: string) => {
-              original.headers = original.headers || {};
-              original.headers.Authorization = `Bearer ${token}`;
-              resolve(api(original));
-            },
-            reject,
-          ]);
-        });
-      }
+  let isRefreshing = false;
+  type QueueItem = [(token: string) => void, (err: any) => void];
+  let pendingQueue: QueueItem[] = [];
 
-      original._retry = true;
-      isRefreshing = true;
+  const tokenKey = `${prefix}Token`;
+  const refreshKey = `${prefix}RefreshToken`;
+  const emailKey = `${prefix}Email`;
 
-      try {
-        const { data } = await axios.post<{ accessToken: string; refreshToken: string }>(
-          `${API_BASE_URL}/auth/refresh`,
-          { email, refreshToken }
-        );
+  function processQueue(error: any, token: string | null = null) {
+    pendingQueue.forEach(([resolve, reject]) => {
+      if (token) resolve(token);
+      else reject(error);
+    });
+    pendingQueue = [];
+  }
 
-        localStorage.setItem('adminToken', data.accessToken);
-        localStorage.setItem('adminRefreshToken', data.refreshToken);
-
-        processQueue(null, data.accessToken);
-
-        original.headers = original.headers || {};
-        original.headers.Authorization = `Bearer ${data.accessToken}`;
-        return api(original);
-      } catch (err) {
-        processQueue(err, null);
-        localStorage.removeItem('adminToken');
-        localStorage.removeItem('adminRefreshToken');
-        localStorage.removeItem('adminEmail');
-        return Promise.reject(err);
-      } finally {
-        isRefreshing = false;
+  api.interceptors.request.use((config) => {
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem(tokenKey);
+      if (token && config.headers) {
+        config.headers.Authorization = `Bearer ${token}`;
       }
     }
-    return Promise.reject(error);
-  }
-);
+    return config;
+  });
 
-export default api;
+  api.interceptors.response.use(
+    (res) => res,
+    async (error: AxiosError) => {
+      const original = error.config as RetriableConfig | undefined;
+      const status = error.response?.status;
+
+      if (status === 401 && original && !original._retry && typeof window !== 'undefined') {
+        const refreshToken = localStorage.getItem(refreshKey);
+        const email = localStorage.getItem(emailKey);
+
+        if (!refreshToken || !email) {
+          localStorage.removeItem(tokenKey);
+          localStorage.removeItem(refreshKey);
+          localStorage.removeItem(emailKey);
+          return Promise.reject(error);
+        }
+
+        if (isRefreshing) {
+          return new Promise((resolve, reject) => {
+            pendingQueue.push([
+              (newToken: string) => {
+                original.headers = original.headers || {};
+                (original.headers as any).Authorization = `Bearer ${newToken}`;
+                resolve(api(original));
+              },
+              reject,
+            ]);
+          });
+        }
+
+        original._retry = true;
+        isRefreshing = true;
+
+        try {
+          const { data } = await axios.post<{ accessToken: string; refreshToken: string }>(
+            `${API_BASE_URL}/auth/refresh`,
+            { email, refreshToken },
+            { headers: { 'Content-Type': 'application/json' } }
+          );
+
+          localStorage.setItem(tokenKey, data.accessToken);
+          localStorage.setItem(refreshKey, data.refreshToken);
+
+          processQueue(null, data.accessToken);
+
+          original.headers = original.headers || {};
+          (original.headers as any).Authorization = `Bearer ${data.accessToken}`;
+          return api(original);
+        } catch (err) {
+          processQueue(err, null);
+          localStorage.removeItem(tokenKey);
+          localStorage.removeItem(refreshKey);
+          localStorage.removeItem(emailKey);
+          return Promise.reject(err);
+        } finally {
+          isRefreshing = false;
+        }
+      }
+
+      return Promise.reject(error);
+    }
+  );
+
+  return api;
+}
+
+export const apiAdmin = createApi('admin');
+export const apiUser = createApi('user');

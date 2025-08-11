@@ -1,14 +1,14 @@
-'use client'
+'use client';
 
-import { ReactNode, useState } from 'react'
-import { AuthProvider } from '@/contexts/AuthContext'
-import { Sidebar } from '@/components/Sidebar'
+import { ReactNode, useState } from 'react';
+import { AdminAuthProvider } from '@/contexts/AuthContext';
+import { Sidebar } from '@/components/Sidebar';
 
 export default function AdminShell({ children }: { children: ReactNode }) {
-  const [isSidebarOpen, setSidebarOpen] = useState(false)
+  const [isSidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <AuthProvider>
+    <AdminAuthProvider>
       <div className="flex h-screen overflow-hidden">
         <Sidebar
           isOpen={isSidebarOpen}
@@ -18,6 +18,6 @@ export default function AdminShell({ children }: { children: ReactNode }) {
           {children}
         </main>
       </div>
-    </AuthProvider>
-  )
+    </AdminAuthProvider>
+  );
 }
