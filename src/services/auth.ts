@@ -1,27 +1,32 @@
 import api from '../lib/api';
 import type { User } from '../interfaces/User';
 
+export interface AuthResponse {
+  accessToken: string;
+  refreshToken: string;
+  user: User;
+}
+
 export const authService = {
-  async login(
-    email: string,
-    password: string
-  ): Promise<{ token: string; user: User }> {
-    const response = await api.post<{ token: string; user: User }>(
-      '/auth/login',
-      { email, password }
-    );
-    const { token, user } = response.data;
-    localStorage.setItem('adminToken', token);
-    return { token, user };
+  async login(email: string, password: string): Promise<AuthResponse> {
+    const { data } = await api.post<AuthResponse>('/auth/login-admin', { email, password });
+
+    localStorage.setItem('adminToken', data.accessToken);
+    localStorage.setItem('adminRefreshToken', data.refreshToken);
+    localStorage.setItem('adminEmail', email);
+
+    return data;
   },
 
   async getProfile(): Promise<User> {
-    const response = await api.get<User>('/auth/profile');
-    return response.data;
+    const { data } = await api.get<User>('/auth/profile');
+    return data;
   },
 
   logout() {
     localStorage.removeItem('adminToken');
-    window.location.href = '/login';
+    localStorage.removeItem('adminRefreshToken');
+    localStorage.removeItem('adminEmail');
+    window.location.href = '/loginAdmin';
   },
 };
