@@ -1,16 +1,20 @@
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function Navbar() {
   return (
     <nav className="fixed top-0 left-0 w-full bg-gray-50 shadow z-50 py-4 px-6">
       <div className="flex items-center justify-between max-w-5xl mx-auto">
         <Link href="/" className="text-2xl font-bold text-gray-800 tracking-tight hover:scale-105 transition-transform">
-          Wordle of Dreams
+          <Image 
+          src="/WordleLogo.svg" 
+          alt="Wordle of Dreams Logo" 
+          className="h-10 w-60"
+          width={400}
+          height={400}
+          />
         </Link>
         <div className="flex items-center space-x-6">
-          <Link href="/game" className="text-gray-700 hover:text-gray-500 font-medium px-3 py-1 rounded transition-colors">
-            Jogar
-          </Link>
           <Link href="/sobre" className="text-gray-700 hover:text-gray-500 font-medium px-3 py-1 rounded transition-colors">
             Sobre
           </Link>
