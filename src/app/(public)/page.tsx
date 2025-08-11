@@ -3,7 +3,6 @@
 import { Play, Smile, FileText, Image as ImageIcon } from 'lucide-react';
 import ModoItem from '../../components/ModoItem';
 import StickerBackground from '../../components/StickerBackground';
-// import Logo from '/logo_dreams.svg';
 
 export default function HomePage() {
   return (
