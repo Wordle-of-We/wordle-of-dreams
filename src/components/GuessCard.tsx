@@ -83,6 +83,96 @@ export default function GuessCard({ guess: g, characters, index }: GuessCardProp
     return map[key.toLowerCase()] || key;
   };
 
+  const translateValue = (key: string, value: any) => {
+    const translations: Record<string, Record<string, string>> = {
+      gender: {
+        male: 'Masculino',
+        female: 'Feminino',
+        other: 'Outro',
+      },
+      genero: {
+        MALE: 'Masculino',
+        FEMALE: 'Feminino',
+        other: 'Outro',
+      },
+      status: {
+        alive: 'Vivo',
+        dead: 'Morto',
+        unknown: 'Desconhecido',
+      },
+      alivestatus: {
+        ALIVE: 'Vivo',
+        DEAD: 'Morto',
+        UNKNOWN: 'Desconhecido',
+      },
+      isprotagonist: {
+        true: 'Sim',
+        false: 'Não',
+      },
+      hair: {
+        black: 'Preto',
+        brown: 'Castanho',
+        blonde: 'Loiro',
+        red: 'Ruivo',
+        gray: 'Grisalho',
+        white: 'Branco',
+        blue: 'Azul',
+        green: 'Verde',
+        pink: 'Rosa',
+        purple: 'Roxo',
+        other: 'Outro',
+      },
+      race: {
+        white: 'Branca',
+        black: 'Preta',
+        brown: 'Parda',
+        yellow: 'Amarela',
+        indigenous: 'Indígena',
+        other: 'Outra',
+      },
+      ethnicity: {
+        white: 'Branca',
+        black: 'Preta',
+        brown: 'Parda',
+        yellow: 'Amarela',
+        indigenous: 'Indígena',
+        other: 'Outra',
+      },
+      species: {
+        human: 'Humano',
+        alien: 'Alienígena',
+        robot: 'Robô',
+        animal: 'Animal',
+        other: 'Outro',
+      },
+      franchises: {
+        // Adicione traduções específicas se necessário
+      },
+    };
+
+    const keyLower = key.toLowerCase();
+
+    if (Array.isArray(value)) {
+      return value
+        .map((v) =>
+          translations[keyLower]?.[String(v).toLowerCase()] || String(v)
+        )
+        .join(', ');
+    }
+
+    if (
+      typeof value === 'boolean' &&
+      translations[keyLower] &&
+      translations[keyLower][String(value)]
+    ) {
+      return translations[keyLower][String(value)];
+    }
+
+    return (
+      translations[keyLower]?.[String(value).toLowerCase()] || String(value)
+    );
+  };
+
   return (
     <div className="rounded p-6 shadow-sm w-max mx-full bg-gray-50">
       <div className="flex flex-col sm:flex-row gap-4 items-start">
@@ -114,9 +204,7 @@ export default function GuessCard({ guess: g, characters, index }: GuessCardProp
                 <div className="text-xs">{Icon}</div>
                 <div className="text-xs font-semibold mt-1">{label}</div>
                 <div className="text-xs font-bold text-center break-words">
-                  {Array.isArray(val.guessed)
-                    ? val.guessed.join(", ")
-                    : String(val.guessed)}
+                  {translateValue(key, val.guessed)}
                 </div>
                 <div className="mt-1">
                   {color === "bg-green-400" && <CheckCircle size={20} />}
