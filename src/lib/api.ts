@@ -1,4 +1,5 @@
 import axios, { AxiosError, AxiosInstance, AxiosRequestConfig } from 'axios';
+import { getOrCreateGuestId } from './guestId';
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, '') || 'http://localhost:3000';
@@ -10,7 +11,10 @@ interface RetriableConfig extends AxiosRequestConfig {
 type Prefix = 'admin' | 'user';
 
 function createApi(prefix: Prefix): AxiosInstance {
-  const api = axios.create({ baseURL: API_BASE_URL });
+  const api = axios.create({
+    baseURL: API_BASE_URL,
+    timeout: 20000,
+  });
 
   let isRefreshing = false;
   type QueueItem = [(token: string) => void, (err: any) => void];
@@ -19,6 +23,11 @@ function createApi(prefix: Prefix): AxiosInstance {
   const tokenKey = `${prefix}Token`;
   const refreshKey = `${prefix}RefreshToken`;
   const emailKey = `${prefix}Email`;
+
+  function ensureHeaders(cfg: AxiosRequestConfig) {
+    cfg.headers = cfg.headers ?? {};
+    return cfg.headers as Record<string, string>;
+  }
 
   function processQueue(error: any, token: string | null = null) {
     pendingQueue.forEach(([resolve, reject]) => {
@@ -30,10 +39,13 @@ function createApi(prefix: Prefix): AxiosInstance {
 
   api.interceptors.request.use((config) => {
     if (typeof window !== 'undefined') {
+      const headers = ensureHeaders(config);
+
       const token = localStorage.getItem(tokenKey);
-      if (token && config.headers) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
+      if (token) headers.Authorization = `Bearer ${token}`;
+
+      const gid = getOrCreateGuestId();
+      if (gid) headers['X-Guest-Id'] = gid;
     }
     return config;
   });
@@ -44,7 +56,15 @@ function createApi(prefix: Prefix): AxiosInstance {
       const original = error.config as RetriableConfig | undefined;
       const status = error.response?.status;
 
-      if (status === 401 && original && !original._retry && typeof window !== 'undefined') {
+      if (!original || typeof window === 'undefined') {
+        return Promise.reject(error);
+      }
+
+      const isRefreshCall =
+        typeof original.url === 'string' &&
+        original.url.replace(API_BASE_URL, '').startsWith('/auth/refresh');
+
+      if (status === 401 && !original._retry && !isRefreshCall) {
         const refreshToken = localStorage.getItem(refreshKey);
         const email = localStorage.getItem(emailKey);
 
@@ -59,8 +79,8 @@ function createApi(prefix: Prefix): AxiosInstance {
           return new Promise((resolve, reject) => {
             pendingQueue.push([
               (newToken: string) => {
-                original.headers = original.headers || {};
-                (original.headers as any).Authorization = `Bearer ${newToken}`;
+                const headers = ensureHeaders(original);
+                headers.Authorization = `Bearer ${newToken}`;
                 resolve(api(original));
               },
               reject,
@@ -83,8 +103,9 @@ function createApi(prefix: Prefix): AxiosInstance {
 
           processQueue(null, data.accessToken);
 
-          original.headers = original.headers || {};
-          (original.headers as any).Authorization = `Bearer ${data.accessToken}`;
+          const headers = ensureHeaders(original);
+          headers.Authorization = `Bearer ${data.accessToken}`;
+
           return api(original);
         } catch (err) {
           processQueue(err, null);
