@@ -55,6 +55,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ kind, children }) =>
     let mounted = true;
     (async () => {
       setIsLoading(true);
+
+      const tokenKey = kind === 'admin' ? 'adminToken' : 'userToken';
+      const hasToken =
+        typeof window !== 'undefined' && !!localStorage.getItem(tokenKey);
+
+      if (!hasToken) {
+        if (mounted) {
+          setUser(null);
+          setIsLoading(false);
+        }
+        return;
+      }
+
       try {
         const u = await svc.getProfile();
         if (mounted) setUser(u);
@@ -64,10 +77,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ kind, children }) =>
         if (mounted) setIsLoading(false);
       }
     })();
-    return () => {
-      mounted = false;
-    };
-  }, [svc]);
+    return () => { mounted = false; };
+  }, [svc, kind]);
 
   const login = async (email: string, password: string) => {
     const { user: u } = await svc.login(email, password);
@@ -82,8 +93,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ kind, children }) =>
   const register =
     kind === 'user'
       ? async (payload: { email: string; password: string; username: string }) => {
-          await authUser.register(payload);
-        }
+        await authUser.register(payload);
+      }
       : undefined;
 
   return (

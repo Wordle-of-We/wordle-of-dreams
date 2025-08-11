@@ -22,7 +22,7 @@ export const authAdmin = {
   },
 
   async getProfile(): Promise<User> {
-    const { data } = await apiAdmin.get<User>('/users/me');
+    const { data } = await apiAdmin.get<User>('/auth/profile');
     return data;
   },
 

@@ -32,7 +32,7 @@ export const authUser = {
   },
 
   async getProfile(): Promise<User> {
-    const { data } = await apiUser.get<User>('/users/me');
+    const { data } = await apiUser.get<User>('/auth/profile');
     return data;
   },
 

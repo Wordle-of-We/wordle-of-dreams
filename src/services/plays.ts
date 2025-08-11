@@ -1,53 +1,38 @@
 import { apiUser } from '../lib/api';
 
-import type {
-  GuessResult,
-  StartPlayDto,
-  StartPlayResponse,
-  DailyProgressResponse,
-  PlayProgressResponse,
-} from '@/interfaces/Play';
-
-export const startPlay = async (
-  data: StartPlayDto
-): Promise<StartPlayResponse> => {
-  const { data: response } = await apiUser.post<StartPlayResponse>('/plays/start', data);
-  return response;
+export type StartPlayResponse = {
+  playId: number;
+  completed: boolean;
+  attemptsCount: number;
+  character: {
+    id: number; name: string; description: string;
+    imageUrl1: string | null; imageUrl2: string | null; emojis?: string[] | null;
+  };
+  modeConfig: {
+    id: number; name: string;
+    imageUseSecondImage?: boolean; imageBlurStart?: number;
+    imageBlurStep?: number; imageBlurMin?: number;
+  };
+  guestId?: string;
 };
 
-export const makeGuess = async (
-  playId: number,
-  guess: string
-): Promise<GuessResult> => {
-  const { data } = await apiUser.post<GuessResult>(`/plays/${playId}/guess`, { guess });
+export async function startPlay(modeConfigId: number, date?: string) {
+  const { data } = await apiUser.post<StartPlayResponse>('/plays/start', { modeConfigId, date });
+  if (data.guestId) localStorage.setItem('guestId', data.guestId);
   return data;
-};
+}
 
-export const getAttemptsByPlay = async (
-  playId: number
-): Promise<GuessResult[]> => {
-  const { data } = await apiUser.get<GuessResult[]>(`/plays/${playId}/attempts`);
+export async function getDailyProgress(modeConfigId: number) {
+  const { data } = await apiUser.get(`/plays/progress/${modeConfigId}`);
   return data;
-};
+}
 
-export const getDailyProgress = async (
-  modeConfigId: number
-): Promise<DailyProgressResponse> => {
-  const { data } = await apiUser.get<DailyProgressResponse>(`/plays/progress/${modeConfigId}`);
+export async function makeGuess(playId: number, guess: string) {
+  const { data } = await apiUser.post(`/plays/${playId}/guess`, { guess });
   return data;
-};
+}
 
-export const getPlayProgress = async (
-  playId: number
-): Promise<PlayProgressResponse> => {
-  const { data } = await apiUser.get<PlayProgressResponse>(`/plays/${playId}/progress`);
+export async function getAttempts(playId: number) {
+  const { data } = await apiUser.get(`/plays/${playId}/attempts`);
   return data;
-};
-
-export type {
-  GuessResult,
-  StartPlayDto,
-  StartPlayResponse,
-  DailyProgressResponse,
-  PlayProgressResponse,
-} from '@/interfaces/Play';
+}
