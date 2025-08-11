@@ -26,9 +26,10 @@ interface GuessCardProps {
   guess: GuessResult;
   characters: Character[];
   index: number;
+  hideLabels?: boolean;
 }
 
-export default function GuessCard({ guess: g, characters, index }: GuessCardProps) {
+export default function GuessCard({ guess: g, characters, index, hideLabels = false }: GuessCardProps) {
   const guessedCharacter = characters.find(
     (char) => char.name.toLowerCase() === g.guess.toLowerCase()
   );
@@ -174,9 +175,9 @@ export default function GuessCard({ guess: g, characters, index }: GuessCardProp
   };
 
   return (
-    <div className="rounded p-6 shadow-sm w-max mx-full bg-gray-50">
-      <div className="flex flex-col sm:flex-row gap-4 items-start">
-        <div className="flex justify-center items-center mt-5 w-25 h-25">
+    <div className="rounded-lg p-3 sm:p-4 w-full max-w-fit mx-auto bg-white/50 backdrop-blur-sm overflow-x-auto">
+      <div className="flex items-center gap-3 md:gap-4 min-w-fit">
+        <div className="flex flex-col items-center justify-center w-24 sm:w-28 md:w-32 lg:w-36 h-20 sm:h-24 md:h-28 lg:h-32 flex-shrink-0">
           <Image
             src={
               guessedCharacter?.imageUrl1 ||
@@ -184,13 +185,16 @@ export default function GuessCard({ guess: g, characters, index }: GuessCardProp
               "/images/default-character.png"
             }
             alt={g.guess}
-            width={160}
-            height={160}
-            className="object-contain rounded-xl border"
+            width={80}
+            height={80}
+            className="object-contain rounded-lg w-14 h-14 sm:w-18 sm:h-18 md:w-22 md:h-22"
           />
+          <span className="text-sm sm:text-base font-medium text-gray-800 mt-1 text-center truncate w-full px-1">
+            {g.guess}
+          </span>
         </div>
 
-        <div className="mt-6 flex flex-wrap justify-center gap-4">
+        <div className="flex gap-3 md:gap-4">
           {Object.entries(g.comparison).map(([key, val]) => {
             const color = getStatusColor(val.guessed, val.target);
             const Icon = getIconForKey(key);
@@ -199,18 +203,22 @@ export default function GuessCard({ guess: g, characters, index }: GuessCardProp
             return (
               <div
                 key={`${key}-${index}`}
-                className={`w-25 h-25 p-4 rounded-xl shadow-md flex flex-col items-center justify-between text-white ${color}`}
+                className={`w-24 sm:w-28 md:w-32 lg:w-36 h-14 sm:h-16 md:h-18 lg:h-20 p-3 sm:p-4 rounded-lg sm:rounded-xl shadow-md flex flex-col items-center justify-center text-white ${color} flex-shrink-0`}
               >
-                <div className="text-xs">{Icon}</div>
-                <div className="text-xs font-semibold mt-1">{label}</div>
-                <div className="text-xs font-bold text-center break-words">
+                {!hideLabels && (
+                  <>
+                    <div className="text-sm">{Icon}</div>
+                    <div className="text-sm font-semibold mt-1">{label}</div>
+                  </>
+                )}
+                <div className={`text-sm sm:text-base font-bold text-center px-1 ${hideLabels ? 'flex-1 flex items-center justify-center' : ''}`}>
                   {translateValue(key, val.guessed)}
                 </div>
                 <div className="mt-1">
-                  {color === "bg-green-400" && <CheckCircle size={20} />}
-                  {color === "bg-red-400" && <XCircle size={20} />}
+                  {color === "bg-green-400" && <CheckCircle size={18} className="sm:w-5 sm:h-5" />}
+                  {color === "bg-red-400" && <XCircle size={18} className="sm:w-5 sm:h-5" />}
                   {color === "bg-yellow-400" && (
-                    <div className="w-4 h-4 bg-yellow-400 rounded-full" />
+                    <div className="w-4 h-4 sm:w-5 sm:h-5 bg-yellow-400 rounded-full" />
                   )}
                 </div>
               </div>
