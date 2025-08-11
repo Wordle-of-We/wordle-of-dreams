@@ -8,7 +8,6 @@ import type {
   PlayProgressResponse,
 } from '@/interfaces/Play';
 
-// Inicia ou recupera a partida do dia
 export const startPlay = async (
   data: StartPlayDto
 ): Promise<StartPlayResponse> => {
@@ -19,7 +18,6 @@ export const startPlay = async (
   return response;
 };
 
-// Envia um palpite
 export const makeGuess = async (
   playId: number,
   guess: string
@@ -30,7 +28,6 @@ export const makeGuess = async (
   return data;
 };
 
-// Lista todos os palpites de uma partida
 export const getAttemptsByPlay = async (
   playId: number
 ): Promise<GuessResult[]> => {
@@ -40,7 +37,6 @@ export const getAttemptsByPlay = async (
   return data;
 };
 
-// Verifica progresso diário (já jogou hoje?)
 export const getDailyProgress = async (
   modeConfigId: number
 ): Promise<DailyProgressResponse> => {
@@ -50,7 +46,6 @@ export const getDailyProgress = async (
   return data;
 };
 
-// Busca progresso completo de uma partida específica
 export const getPlayProgress = async (
   playId: number
 ): Promise<PlayProgressResponse> => {

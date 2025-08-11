@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Plus } from 'lucide-react'
 import { BaseModal, ModalSize } from './BaseModal'
 import type { Franchise } from '../interfaces/Franchise'
-import type { Character, CreateCharacterDto, UpdateCharacterDto } from '../interfaces/Character'
+import type { Character, CreateCharacterDto } from '../interfaces/Character'
 
 export interface CharacterModalData
   extends Omit<CreateCharacterDto, 'isProtagonist' | 'isAntagonist'> {
@@ -55,25 +55,23 @@ export const CharacterModal: React.FC<CharacterModalProps> = ({
 
   useEffect(() => {
     if (initialData) {
-      const paddedEmojis = Array.from(
-        { length: 5 },
-        (_, i) => initialData.emojis[i] ?? ''
-      )
+      const paddedEmojis = Array.from({ length: 5 }, (_, i) => initialData.emojis[i] ?? '')
 
       setForm({
         name: initialData.name,
-        description: initialData.description,
+        description: initialData.description ?? '',
         emojis: paddedEmojis,
         race: initialData.race.length ? initialData.race : [''],
         ethnicity: initialData.ethnicity.length ? initialData.ethnicity : [''],
         gender: initialData.gender,
         hair: initialData.hair,
         aliveStatus: initialData.aliveStatus,
-        paper: Array.isArray(initialData.paper) ? initialData.paper : [''],
+        paper: Array.isArray(initialData.paper) && initialData.paper.length ? initialData.paper : [''],
         franchiseIds: initialData.franchiseIds,
         imageUrl1: initialData.imageUrl1 ?? '',
         imageUrl2: initialData.imageUrl2 ?? '',
       })
+
       setPreview1(initialData.imageUrl1 ?? undefined)
       setPreview2(initialData.imageUrl2 ?? undefined)
     } else {
@@ -87,7 +85,8 @@ export const CharacterModal: React.FC<CharacterModalProps> = ({
     setForm(prev => ({ ...prev, [key]: value }))
 
   const handleArrayChange = (key: 'emojis' | 'race' | 'ethnicity' | 'paper', idx: number, value: string) => {
-    const arr = [...(form[key] ?? [])]; arr[idx] = value
+    const arr = [...(form[key] ?? [])]
+    arr[idx] = value
     handleChange(key, arr as any)
   }
 
@@ -106,9 +105,31 @@ export const CharacterModal: React.FC<CharacterModalProps> = ({
     else setPreview2(url)
   }
 
-  useEffect(() => () => {
-    preview1 && URL.revokeObjectURL(preview1)
-    preview2 && URL.revokeObjectURL(preview2)
+  const handleUrlChange = (key: 'imageUrl1' | 'imageUrl2', url: string) => {
+    handleChange(key, url)
+    if (key === 'imageUrl1') setPreview1(url || undefined)
+    else setPreview2(url || undefined)
+  }
+
+  const clearImage = (which: 1 | 2) => {
+    if (which === 1) {
+      if (preview1?.startsWith('blob:')) URL.revokeObjectURL(preview1)
+      handleChange('file1', undefined as any)
+      handleChange('imageUrl1', '')
+      setPreview1(undefined)
+    } else {
+      if (preview2?.startsWith('blob:')) URL.revokeObjectURL(preview2)
+      handleChange('file2', undefined as any)
+      handleChange('imageUrl2', '')
+      setPreview2(undefined)
+    }
+  }
+
+  useEffect(() => {
+    return () => {
+      if (preview1?.startsWith('blob:')) URL.revokeObjectURL(preview1)
+      if (preview2?.startsWith('blob:')) URL.revokeObjectURL(preview2)
+    }
   }, [preview1, preview2])
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -145,13 +166,13 @@ export const CharacterModal: React.FC<CharacterModalProps> = ({
             value={form.name}
             onChange={e => handleChange('name', e.target.value)}
             required
-            className="w-full px-3 py-2 border border-gray-700 rounded focus:outline-none focus:ring-2 focus:ring-gray-600"
+            className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-gray-600"
           />
         </div>
 
         <div>
           <label className="block text-sm font-semibold mb-1">Franquias *</label>
-          <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto border border-gray-700 rounded p-2">
+          <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto border border-gray-300 rounded p-2">
             {franchises.map(f => {
               const id = f.id.toString()
               const checked = form.franchiseIds.includes(id)
@@ -166,7 +187,7 @@ export const CharacterModal: React.FC<CharacterModalProps> = ({
                         : form.franchiseIds.filter(x => x !== id)
                       handleChange('franchiseIds', next as any)
                     }}
-                    className="h-4 w-4 text-gray-900 border-gray-700 rounded focus:ring-gray-600"
+                    className="h-4 w-4 text-gray-900 border-gray-300 rounded focus:ring-gray-600"
                   />
                   <span className="text-gray-800">{f.name}</span>
                 </label>
@@ -176,22 +197,22 @@ export const CharacterModal: React.FC<CharacterModalProps> = ({
         </div>
 
         <div>
-          <label className="block text-sm font-semibold mb-1">Paper</label>
+          <label className="block text-sm font-semibold mb-1">Papéis (opcional)</label>
           {form.paper?.map((val, idx) => (
             <div key={idx} className="flex items-center space-x-2 mb-2">
               <input
-          type="text"
-          value={val}
-          onChange={e => handleArrayChange('paper', idx, e.target.value)}
-          className="flex-1 px-3 py-2 border border-gray-700 rounded focus:outline-none focus:ring-2 focus:ring-gray-600 placeholder-gray-500"
-          placeholder="Ex: Paper 1"
+                type="text"
+                value={val}
+                onChange={e => handleArrayChange('paper', idx, e.target.value)}
+                className="flex-1 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-gray-600 placeholder-gray-400"
+                placeholder="Ex: Protagonista, Coadjuvante..."
               />
               <button
-          type="button"
-          onClick={() => handleRemoveField('paper', idx)}
-          className="px-2 py-1 text-red-700 hover:bg-red-100 rounded"
+                type="button"
+                onClick={() => handleRemoveField('paper', idx)}
+                className="px-2 py-1 text-red-700 hover:bg-red-100 rounded"
               >
-          ✕
+                ✕
               </button>
             </div>
           ))}
@@ -200,7 +221,7 @@ export const CharacterModal: React.FC<CharacterModalProps> = ({
             onClick={() => handleAddField('paper')}
             className="px-3 py-1 bg-gray-800 text-white rounded hover:bg-gray-700"
           >
-            + Adicionar Paper
+            + Adicionar Papel
           </button>
         </div>
 
@@ -210,7 +231,7 @@ export const CharacterModal: React.FC<CharacterModalProps> = ({
             <select
               value={form.gender}
               onChange={e => handleChange('gender', e.target.value as any)}
-              className="w-full px-3 py-2 border border-gray-700 rounded focus:outline-none focus:ring-2 focus:ring-gray-600"
+              className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-gray-600"
             >
               <option value="MALE">Masculino</option>
               <option value="FEMALE">Feminino</option>
@@ -222,7 +243,7 @@ export const CharacterModal: React.FC<CharacterModalProps> = ({
             <select
               value={form.aliveStatus}
               onChange={e => handleChange('aliveStatus', e.target.value as any)}
-              className="w-full px-3 py-2 border border-gray-700 rounded focus:outline-none focus:ring-2 focus:ring-gray-600"
+              className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-gray-600"
             >
               <option value="ALIVE">Vivo</option>
               <option value="DEAD">Morto</option>
@@ -234,7 +255,7 @@ export const CharacterModal: React.FC<CharacterModalProps> = ({
               type="text"
               value={form.hair}
               onChange={e => handleChange('hair', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-700 rounded focus:outline-none focus:ring-2 focus:ring-gray-600"
+              className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-gray-600"
             />
           </div>
         </div>
@@ -245,37 +266,96 @@ export const CharacterModal: React.FC<CharacterModalProps> = ({
             value={form.description}
             onChange={e => handleChange('description', e.target.value)}
             rows={3}
-            className="w-full px-3 py-2 border border-gray-700 rounded focus:outline-none focus:ring-2 focus:ring-gray-600"
+            className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-gray-600"
           />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {(['file1', 'file2'] as const).map(key => (
-            <div key={key}>
-              <label className="block text-sm font-semibold mb-1">
-                Upload Imagem {key === 'file1' ? '1' : '2'} (opcional)
+          <div className="space-y-2">
+            <label className="block text-sm font-semibold">Imagem 1 (opcional)</label>
+
+            <div className="flex items-center space-x-4">
+              <label className="flex items-center px-4 py-2 bg-gray-900 text-white rounded cursor-pointer hover:bg-gray-800">
+                <Plus className="w-5 h-5 mr-2" />
+                Selecionar arquivo
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={e => handleFileChange('file1', e.target.files?.[0])}
+                  className="hidden"
+                />
               </label>
-              <div className="flex items-center space-x-4">
-                <label className="flex items-center px-4 py-2 bg-gray-900 text-white rounded cursor-pointer hover:bg-gray-800">
-                  <Plus className="w-5 h-5 mr-2" />
-                  Selecionar
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={e => handleFileChange(key, e.target.files?.[0])}
-                    className="hidden"
-                  />
-                </label>
-                {(key === 'file1' ? preview1 : preview2) && (
-                  <img
-                    src={key === 'file1' ? preview1 : preview2}
-                    alt="Pré-visualização"
-                    className="w-16 h-16 object-cover rounded border border-gray-700"
-                  />
-                )}
-              </div>
+
+              {preview1 && (
+                <img
+                  src={preview1}
+                  alt="Pré-visualização 1"
+                  className="w-16 h-16 object-cover rounded border border-gray-300"
+                />
+              )}
+
+              {(form.file1 || form.imageUrl1) && (
+                <button
+                  type="button"
+                  onClick={() => clearImage(1)}
+                  className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-100"
+                >
+                  Limpar
+                </button>
+              )}
             </div>
-          ))}
+
+            <input
+              type="url"
+              value={form.imageUrl1}
+              onChange={e => handleUrlChange('imageUrl1', e.target.value)}
+              placeholder="Ou cole uma URL..."
+              className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-gray-600"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="block text-sm font-semibold">Imagem 2 (opcional)</label>
+
+            <div className="flex items-center space-x-4">
+              <label className="flex items-center px-4 py-2 bg-gray-900 text-white rounded cursor-pointer hover:bg-gray-800">
+                <Plus className="w-5 h-5 mr-2" />
+                Selecionar arquivo
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={e => handleFileChange('file2', e.target.files?.[0])}
+                  className="hidden"
+                />
+              </label>
+
+              {preview2 && (
+                <img
+                  src={preview2}
+                  alt="Pré-visualização 2"
+                  className="w-16 h-16 object-cover rounded border border-gray-300"
+                />
+              )}
+
+              {(form.file2 || form.imageUrl2) && (
+                <button
+                  type="button"
+                  onClick={() => clearImage(2)}
+                  className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-100"
+                >
+                  Limpar
+                </button>
+              )}
+            </div>
+
+            <input
+              type="url"
+              value={form.imageUrl2}
+              onChange={e => handleUrlChange('imageUrl2', e.target.value)}
+              placeholder="Ou cole uma URL..."
+              className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-gray-600"
+            />
+          </div>
         </div>
 
         <div>
@@ -288,7 +368,7 @@ export const CharacterModal: React.FC<CharacterModalProps> = ({
                 maxLength={2}
                 value={emoji}
                 onChange={e => handleArrayChange('emojis', idx, e.target.value)}
-                className="px-2 py-2 border border-gray-700 rounded text-center focus:outline-none focus:ring-2 focus:ring-gray-600 placeholder-gray-500"
+                className="px-2 py-2 border border-gray-300 rounded text-center focus:outline-none focus:ring-2 focus:ring-gray-600 placeholder-gray-400"
                 placeholder="😊"
               />
             ))}
@@ -303,7 +383,7 @@ export const CharacterModal: React.FC<CharacterModalProps> = ({
                 type="text"
                 value={val}
                 onChange={e => handleArrayChange('race', idx, e.target.value)}
-                className="flex-1 px-3 py-2 border border-gray-700 rounded focus:outline-none focus:ring-2 focus:ring-gray-600 placeholder-gray-500"
+                className="flex-1 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-gray-600 placeholder-gray-400"
                 placeholder="Ex: Humano"
               />
               <button
@@ -332,7 +412,7 @@ export const CharacterModal: React.FC<CharacterModalProps> = ({
                 type="text"
                 value={val}
                 onChange={e => handleArrayChange('ethnicity', idx, e.target.value)}
-                className="flex-1 px-3 py-2 border border-gray-700 rounded focus:outline-none focus:ring-2 focus:ring-gray-600 placeholder-gray-500"
+                className="flex-1 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-gray-600 placeholder-gray-400"
                 placeholder="Ex: Latina"
               />
               <button

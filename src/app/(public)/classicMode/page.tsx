@@ -1,6 +1,6 @@
 'use client';
 
-import { useClassicMode } from '@/hooks/useClassicMode';
+import { useClassicMode } from '../../../hooks/useClassicMode';
 import GuessCard from '../../../components/GuessCard';
 import GuessInput from '../../../components/GuessInput';
 import VictoryModal from '../../../components/VictoryModal';

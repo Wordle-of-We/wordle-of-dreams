@@ -1,5 +1,3 @@
-'use client'
-
 import { useEffect, useState } from 'react'
 import {
   getDailyProgress,
@@ -18,7 +16,6 @@ import { PlayCharacter, ProgressCharacter } from '@/interfaces/Play'
 export function useClassicMode() {
   const MODE_ID = 1
 
-  // estados de jogo
   const [playId, setPlayId] = useState<number | null>(null)
   const [guesses, setGuesses] = useState<ServiceGuessResult[]>([])
   const [characters, setCharacters] = useState<ServiceCharacter[]>([])
@@ -29,16 +26,13 @@ export function useClassicMode() {
   const [targetCharacter, setTargetCharacter] = useState<ProgressCharacter | null>(null)
   const [showVictoryModal, setShowVictoryModal] = useState(false)
 
-  // Inicialização: busca personagens e progresso/jogo do dia
   useEffect(() => {
     const init = async () => {
       setLoading(true)
       try {
-        // 1) carrega lista completa (para autocomplete ou outras UIs)
         const chars = await getAllCharacters()
         setCharacters(chars)
 
-        // 2) verifica se já jogou hoje
         const progress: DailyProgressResponse = await getDailyProgress(
           MODE_ID
         )
@@ -51,7 +45,6 @@ export function useClassicMode() {
           return
         }
 
-        // 3) inicia nova partida
         const startRes: StartPlayResponse = await startPlay({
           modeConfigId: MODE_ID,
         })
@@ -71,7 +64,6 @@ export function useClassicMode() {
     init()
   }, [])
 
-  // Função para submeter palpite
   const submitGuess = async (name: string) => {
     if (!playId || hasWon) return
 
@@ -92,20 +84,17 @@ export function useClassicMode() {
   }
 
   return {
-    // estados de controle
     playId,
     guesses,
     characters,
     loading,
     error,
 
-    // vitória e target
     hasWon,
     targetCharacter,
     showVictoryModal,
     setShowVictoryModal,
 
-    // ações
     submitGuess,
   }
 }

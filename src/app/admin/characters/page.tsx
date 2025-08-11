@@ -5,7 +5,7 @@ import { Plus, Edit, Trash2 } from 'lucide-react'
 import { DataTable } from '../../../components/DataTable'
 import { CharacterModal, CharacterModalData } from '../../../components/CharacterModal'
 import { useToast } from '../../../hooks/useToast'
-import { createCharacter, deleteCharacter, getAllCharacters, updateCharacter, updateCharacterImage } from '../../../services/characters'
+import { createCharacter, deleteCharacter, getAllCharacters, updateCharacter, updateCharacterImage, updateCharacterImage2 } from '../../../services/characters'
 import { franchiseService } from '../../../services/franchises'
 import type { Character } from '../../../interfaces/Character'
 import type { Franchise } from '../../../interfaces/Franchise'
@@ -53,21 +53,32 @@ export default function Characters() {
       showToast('error', 'Nome e pelo menos uma franquia são obrigatórios')
       return
     }
+
     setSaving(true)
     try {
-      const { file1, file2, ...payload } = data
+      const { file1, file2, imageUrl1, imageUrl2, ...payload } = data
       let char: Character
+
       if (editingCharacter) {
-        char = await updateCharacter(Number(editingCharacter.id), payload as any)
-        if (file1) {
-          await updateCharacterImage(Number(editingCharacter.id), file1)
+        const id = Number(editingCharacter.id)
+
+        char = await updateCharacter(id, payload as any)
+
+        if (file1 || imageUrl1) {
+          await updateCharacterImage(id, file1, imageUrl1 || undefined)
+        }
+
+        if (file2 || imageUrl2) {
+          await updateCharacterImage2(id, file2, imageUrl2 || undefined)
         }
       } else {
         char = await createCharacter(payload as any, file1)
+
+        if (file2 || imageUrl2) {
+          await updateCharacterImage2(Number(char.id), file2, imageUrl2 || undefined)
+        }
       }
-      if (file2) {
-        await updateCharacterImage(Number(char.id), file2)
-      }
+
       showToast('success', editingCharacter ? 'Atualizado!' : 'Criado!')
       setIsModalOpen(false)
       setEditingCharacter(null)

@@ -16,7 +16,6 @@ export const franchiseService = {
     }));
   },
 
-
   async getById(id: string): Promise<Franchise> {
     const response = await api.get(`/franchises/${id}`, { withCredentials: true })
     return response.data

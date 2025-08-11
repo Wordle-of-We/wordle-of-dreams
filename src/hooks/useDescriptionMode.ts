@@ -10,7 +10,7 @@ import { getDailyProgress, startPlay, makeGuess } from '@/services/plays'
 import { ProgressCharacter } from '@/interfaces/Play'
 
 export function useDescriptionMode() {
-  const MODE_ID = 2
+  const MODE_ID = 3
 
   const [playId, setPlayId] = useState<number | null>(null)
   const [guesses, setGuesses] = useState<GuessResult[]>([])

@@ -1,69 +1,55 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import {
-  getDailyProgress,
-  startPlay,
-  makeGuess,
-} from '@/services/plays'
-import { getSelectionByMode } from '@/services/dailySelection'
+import { getDailyProgress, startPlay, makeGuess, getPlayProgress } from '@/services/plays'
 import type { GuessResult } from '@/services/plays'
-import type { Character } from '@/interfaces/Character'
+import type { PlayCharacter, DailyProgressResponse } from '@/interfaces/Play'
 
 export function useEmojiMode() {
-  const MODE_ID = 3
+  const MODE_ID = 2
 
   const [playId, setPlayId] = useState<number | null>(null)
   const [guesses, setGuesses] = useState<GuessResult[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [hasWon, setHasWon] = useState(false)
-  const [targetCharacter, setTargetCharacter] = useState<Character | null>(null)
+  const [targetCharacter, setTargetCharacter] = useState<PlayCharacter | null>(null)
   const [showVictoryModal, setShowVictoryModal] = useState(false)
   const [revealedEmojis, setRevealedEmojis] = useState<string[]>([])
 
   useEffect(() => {
     async function init() {
+      setLoading(true)
       try {
-        // 1) Seleção diária via service
-        const selection = await getSelectionByMode(MODE_ID)
-        const character = selection.character
+        const progress: DailyProgressResponse = await getDailyProgress(MODE_ID)
 
-        if (!character?.emojis?.length) {
-          throw new Error(
-            'O personagem do dia não foi encontrado ou não possui emojis.'
-          )
-        }
-        setTargetCharacter(character)
-
-        // 2) Inicia ou recupera a partida
-        const { playId: startedId } = await startPlay({ modeConfigId: MODE_ID })
-        setPlayId(startedId)
-
-        // 3) Verifica progresso
-        const progress = await getDailyProgress(MODE_ID)
         if (progress.alreadyPlayed) {
-          setGuesses(progress.attempts)
+          setPlayId(progress.playId)
           setHasWon(progress.completed)
 
+          const detail = await getPlayProgress(progress.playId)
+          setGuesses(detail.attempts)
+          setTargetCharacter(detail.character)
+
+          const emojis = detail.character.emojis ?? []
           if (progress.completed) {
-            setRevealedEmojis(character.emojis)
+            setRevealedEmojis(emojis)
             setShowVictoryModal(true)
           } else {
-            // exibe um emoji a mais que o número de tentativas já feitas
-            const count = Math.min(
-              progress.attempts.length + 1,
-              character.emojis.length
-            )
-            setRevealedEmojis(character.emojis.slice(0, count))
+            const count = Math.min(detail.attempts.length + 1, emojis.length)
+            setRevealedEmojis(emojis.slice(0, count))
           }
-        } else {
-          // primeira tentativa do dia: exibe só o primeiro emoji
-          setRevealedEmojis(character.emojis.slice(0, 1))
+          return
         }
+
+        const started = await startPlay({ modeConfigId: MODE_ID })
+        setPlayId(started.playId)
+        setTargetCharacter(started.character)
+        const emojis = started.character.emojis ?? []
+        setRevealedEmojis(emojis.slice(0, 1))
       } catch (err: any) {
         console.error('[useEmojiMode] init error', err)
-        setError(err.message ?? 'Erro ao carregar modo Emoji.')
+        setError(err?.message ?? 'Erro ao carregar modo Emoji.')
       } finally {
         setLoading(false)
       }
@@ -73,12 +59,11 @@ export function useEmojiMode() {
 
   const submitGuess = async (guess: string) => {
     if (!playId || hasWon || !targetCharacter) return
-
     try {
       const attempt = await makeGuess(playId, guess)
-      setGuesses((prev) => [...prev, attempt])
+      setGuesses(prev => [...prev, attempt])
 
-      const emojis = targetCharacter.emojis
+      const emojis = targetCharacter.emojis ?? []
       if (attempt.isCorrect) {
         setHasWon(true)
         setRevealedEmojis(emojis)
