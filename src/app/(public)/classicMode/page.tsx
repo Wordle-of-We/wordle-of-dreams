@@ -28,7 +28,6 @@ export default function ClassicMode() {
 
   const [characters, setCharacters] = useState<Character[]>([]);
 
-  // Função auxiliar para traduzir as chaves (apenas para o cabeçalho)
   const translateKey = (key: string) => {
     const map: Record<string, string> = {
       gender: 'Gênero',
@@ -103,7 +102,7 @@ export default function ClassicMode() {
 
       {/* Conteúdo principal */}
       <div className="pt-16 sm:pt-20 pb-4 px-2 sm:px-4 relative z-10">
-        <div className="max-w-6xl mx-auto">
+        <div className="max-w-6xl mx-auto flex flex-col items-center">
           {/* Título */}
           <div className="text-center mb-4 sm:mb-6">
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-800 mb-2">
@@ -135,15 +134,18 @@ export default function ClassicMode() {
             </div>
           )}
 
-          {/* Cabeçalho das características (só aparece se houver palpites) */}
+          {/* Cabeçalho das características (sem scroll, centralizado) */}
           {guesses.length > 0 && (
-            <div className="mb-4 overflow-x-auto">
-              <div className="flex justify-center gap-3 md:gap-4 min-w-fit px-2">
-                <div className="w-28 sm:w-32 md:w-36 lg:w-40 h-12 sm:h-14 flex items-center justify-center text-sm sm:text-base font-semibold text-gray-800 bg-gray-200/80 rounded-lg flex-shrink-0">
+            <div className="mt-5 mb-4 w-[100vw] flex justify-center">
+              <div className="flex justify-center gap-2 sm:gap-3 md:gap-4 px-2 flex-wrap">
+                <div className="w-24 sm:w-28 md:w-32 lg:w-36 h-10 sm:h-12 md:h-12 flex items-center justify-center text-xs sm:text-sm md:text-base font-semibold text-gray-800 bg-gray-200/80 rounded-lg">
                   Personagem
                 </div>
                 {Object.keys(guesses[0].comparison).map((key) => (
-                  <div key={key} className="w-24 sm:w-28 md:w-32 lg:w-36 h-12 sm:h-14 flex items-center justify-center text-sm sm:text-base font-semibold text-gray-800 bg-gray-200/80 rounded-lg flex-shrink-0">
+                  <div
+                    key={key}
+                    className="w-20 sm:w-24 md:w-28 lg:w-32 h-10 sm:h-12 md:h-12 flex items-center justify-center text-xs sm:text-sm md:text-base font-semibold text-gray-800 bg-gray-200/80 rounded-lg"
+                  >
                     {translateKey(key)}
                   </div>
                 ))}
@@ -151,10 +153,13 @@ export default function ClassicMode() {
             </div>
           )}
 
-          {/* Lista de palpites */}
-          <div className="space-y-2 flex flex-col items-center w-full">
+          {/* Lista de palpites (centralizada) */}
+          <div className="flex flex-col w-[100vw] items-center">
             {guesses.slice().reverse().map((guess, index) => (
-              <div key={guesses.length - 1 - index} className="w-full max-w-none overflow-x-auto">
+              <div
+                key={guesses.length - 1 - index}
+                className="w-full max-w-[75vw] mx-auto"
+              >
                 <GuessCard
                   guess={guess}
                   characters={characters}
@@ -163,9 +168,11 @@ export default function ClassicMode() {
                 />
               </div>
             ))}
-          </div>          {/* Mensagem quando não há palpites */}
+          </div>
+
+          {/* Mensagem quando não há palpites */}
           {guesses.length === 0 && !hasWon && (
-            <div className="text-center py-12 flex justify-center">
+            <div className="text-center flex justify-center">
               <div className="bg-white/70 backdrop-blur-sm rounded-xl p-8 shadow-lg border border-white/20">
                 <h3 className="text-xl font-semibold text-gray-700 mb-2">
                   Comece a jogar!
