@@ -6,7 +6,7 @@ import StickerBackground from '../../components/StickerBackground';
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen relative">
+    <div className="min-h-screen relative mt-5">
       <div className="px-4 sm:px-6 lg:px-8">
         <StickerBackground />
         {/* Título */}
