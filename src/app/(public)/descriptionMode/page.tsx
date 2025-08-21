@@ -92,7 +92,10 @@ export default function DescriptionMode() {
           {!hasWon && (
             <div className="mb-6 sm:mb-8 flex justify-center px-2">
               <div className="w-full max-w-md">
-                <GuessInput onSelect={handleGuess} />
+                <GuessInput
+                  guessedNames={guesses.map(g => g.guess)}
+                  onSelect={handleGuess}
+                />
               </div>
             </div>
           )}
