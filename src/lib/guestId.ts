@@ -1,12 +1,11 @@
 import { v4 as uuidv4 } from 'uuid';
 
-const KEY = 'guestId';
 export function getOrCreateGuestId() {
   if (typeof window === 'undefined') return null;
-  let id = localStorage.getItem(KEY);
+  let id = localStorage.getItem('guestId');
   if (!id) {
-    id = uuidv4();
-    localStorage.setItem(KEY, id);
+    id = (globalThis.crypto?.randomUUID?.() ?? uuidv4());
+    localStorage.setItem('guestId', id);
   }
   return id;
 }
