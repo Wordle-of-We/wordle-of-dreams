@@ -116,7 +116,10 @@ export default function ClassicMode() {
           {/* Input de palpite */}
           {!hasWon && (
             <div className="mb-6 flex justify-center">
-              <GuessInput onSelect={handleGuess} />
+              <GuessInput
+                guessedNames={guesses.map(g => g.guess)}
+                onSelect={handleGuess}
+              />
             </div>
           )}
 
