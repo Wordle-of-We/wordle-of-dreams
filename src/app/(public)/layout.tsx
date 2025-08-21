@@ -13,7 +13,7 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
     <UserAuthProvider>
       <Navbar />
       <div aria-hidden className="h-16" />
-      <main className="px-5 max-w-5xl mx-auto w-full">{children}</main>
+      <main className="px-5 max-w-10xl mx-auto w-full">{children}</main>
     </UserAuthProvider>
   );
 }

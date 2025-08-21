@@ -147,7 +147,6 @@ export default function GuessCard({ guess: g, characters, index, hideLabels = fa
         other: 'Outro',
       },
       franchises: {
-        // Adicione traduções específicas se necessário
       },
     };
 

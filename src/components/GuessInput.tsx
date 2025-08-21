@@ -156,7 +156,7 @@ export default function GuessInput({
   return (
     <div ref={ref} className="relative w-full max-w-md">
       <div
-        className={`flex items-stretch border-2 rounded overflow-hidden shadow ${
+        className={`flex items-stretch border-2 rounded overflow-hidden shadow bg-white ${
           error ? 'border-red-500' : 'border-orange-500'
         }`}
       >

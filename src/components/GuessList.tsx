@@ -26,7 +26,6 @@ interface GuessListProps {
 export default function GuessList({ guesses }: GuessListProps) {
   const [characters, setCharacters] = useState<Character[]>([]);
 
-  // Busca todos os personagens para poder mostrar a imagem correta de cada palpite
   useEffect(() => {
     const fetchCharacters = async () => {
       try {
@@ -44,7 +43,6 @@ export default function GuessList({ guesses }: GuessListProps) {
     fetchCharacters();
   }, []);
 
-  // Função para encontrar o personagem pelo nome do palpite
   const findCharacterImage = (guessName: string) => {
     const character = characters.find(char =>
       char.name.toLowerCase() === guessName.toLowerCase()
@@ -74,7 +72,6 @@ export default function GuessList({ guesses }: GuessListProps) {
           `}
         >
           <div className="flex items-center justify-center gap-2 sm:gap-3">
-            {/* Imagem do personagem chutado */}
             <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-lg overflow-hidden border-2 border-current flex-shrink-0">
               <Image
                 src={findCharacterImage(guess.guess)}
@@ -85,12 +82,10 @@ export default function GuessList({ guesses }: GuessListProps) {
               />
             </div>
 
-            {/* Ícone de acerto/erro */}
             <span className="text-base sm:text-lg">
               {guess.isCorrect ? '✅' : '❌'}
             </span>
 
-            {/* Nome do personagem */}
             <span className="text-sm sm:text-base md:text-lg font-semibold">
               {guess.guess}
             </span>
