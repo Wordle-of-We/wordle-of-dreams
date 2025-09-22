@@ -54,7 +54,7 @@ export default function ClassicMode() {
 
   return (
     <div>
-      <StickerBackground />
+      {/* <StickerBackground /> */}
 
       <div className="pt-16 sm:pt-24 pb-4 sm:pb-8 px-3 sm:px-4 relative z-10 overflow-x-hidden">
         {/* Bloco 1: título + input (largura confortável para leitura) */}

@@ -66,7 +66,7 @@ export default function GuessList({ guesses }: GuessListProps) {
           className={`
             w-full px-3 sm:px-4 py-3 rounded-lg shadow-md border-2 text-center font-medium
             ${guess.isCorrect
-              ? 'bg-green-100 border-green-300 text-green-800'
+              ? 'bg-blue-100 border-blue-300 text-blue-800'
               : 'bg-red-100 border-red-300 text-red-800'
             }
           `}

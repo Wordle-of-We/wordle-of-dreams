@@ -8,7 +8,7 @@ export default function HomePage() {
   return (
     <div className="min-h-screen relative mt-5">
       <div className="px-4 sm:px-6 lg:px-8">
-        <StickerBackground />
+        {/* <StickerBackground /> */}
         {/* Título */}
         <div className="relative z-10 text-center pt-6 sm:pt-8 lg:pt-10">
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold font-poppins text-gray-800">

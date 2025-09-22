@@ -68,7 +68,7 @@ export default function AboutPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <StickerBackground />
+      {/* <StickerBackground /> */}
 
       {/* Header */}
       <div className="relative z-10 px-4 pt-8">

@@ -67,7 +67,7 @@ export default function EmojiModePage() {
   // A partir daqui TS sabe que targetCharacter sempre existe
   return (
     <div>
-      <StickerBackground />
+      {/* <StickerBackground /> */}
 
       <div className="pt-16 sm:pt-24 pb-4 sm:pb-8 px-3 sm:px-4 relative z-10">
         <div className="max-w-4xl mx-auto text-center mb-8">

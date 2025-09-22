@@ -152,8 +152,8 @@ export default function GuessesTable({ guesses }: { guesses: GuessResult[] }) {
       ? arraysEqual(guessed, target)
       : String(guessed) === String(target);
 
-    if (eq) return 'bg-green-400';
-    if (arraysIntersect(guessed, target)) return 'bg-yellow-400';
+    if (eq) return 'bg-blue-400';
+    if (arraysIntersect(guessed, target)) return 'bg-orange-400';
     return 'bg-red-400';
   };
 
@@ -256,10 +256,10 @@ export default function GuessesTable({ guesses }: { guesses: GuessResult[] }) {
                             {val}
                           </div>
                           <div className="mt-1">
-                            {color === 'bg-green-400' && <CheckCircle size={18} className="sm:w-5 sm:h-5" />}
+                            {color === 'bg-blue-400' && <CheckCircle size={18} className="sm:w-5 sm:h-5" />}
                             {color === 'bg-red-400' && <XCircle size={18} className="sm:w-5 sm:h-5" />}
-                            {color === 'bg-yellow-400' && (
-                              <div className="w-4 h-4 sm:w-5 sm:h-5 bg-yellow-200 rounded-full border border-yellow-500" />
+                            {color === 'bg-orange-400' && (
+                              <div className="w-4 h-4 sm:w-5 sm:h-5 bg-yellow-200 rounded-full border border-orange-500" />
                             )}
                           </div>
                         </div>
