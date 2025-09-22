@@ -12,18 +12,18 @@ export default function HomePage() {
         {/* Título */}
         <div className="relative z-10 text-center pt-6 sm:pt-8 lg:pt-10">
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold font-poppins text-gray-800">
-            <div className="flex items-center justify-center -mt-6 sm:-mt-8 lg:-mt-10">
+            <div className="flex items-center justify-center -mt-6 sm:-mt-8 lg:-mt-20">
               <img
                 src="/logo_dreams.svg"
                 alt="Logo Wordle of Dreams"
                 className="w-40 h-40 sm:w-48 sm:h-48 lg:w-52 lg:h-52"
               />
             </div>
-            <span className="block text-orange-500 font-extrabold font-pacifico text-lg sm:text-xl lg:text-2xl mt-1 sm:mt-2">
+            <span className="block text-orange-500 font-extrabold font-pacifico text-lg sm:text-xl lg:text-2xl mt-[-30]">
               Guessing Game
             </span>
           </h1>
-          <p className="mt-3 sm:mt-4 lg:mt-6 text-gray-500 text-sm sm:text-base lg:text-lg max-w-sm sm:max-w-xl lg:max-w-2xl mx-auto font-raleway px-4 sm:px-0">
+          <p className="mt-3 sm:mt-1 lg:mt-3 text-gray-500 text-sm sm:text-base lg:text-lg max-w-sm sm:max-w-xl lg:max-w-2xl mx-auto font-raleway px-4 sm:px-0">
             Escolha seu modo de jogo favorito e teste seus conhecimentos sobre os personagens mais queridos da DreamWorks!
           </p>
         </div>
